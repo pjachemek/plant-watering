@@ -6,6 +6,7 @@ void main() {
   test('without a DSN the app runs directly and reporting is off', () async {
     const config = AppConfig(
       environment: 'dev',
+      apiBaseUrl: '',
       supabaseUrl: '',
       supabaseAnonKey: '',
       sentryDsn: '',
@@ -22,12 +23,14 @@ void main() {
     final config = AppConfig.fromEnvironment();
 
     expect(config.environment, 'dev');
+    expect(config.apiBaseUrl, 'https://api.plants.pampait.pl/v1');
     expect(config.errorReportingEnabled, isFalse);
   });
 
   test('a DSN turns reporting on', () {
     const config = AppConfig(
       environment: 'staging',
+      apiBaseUrl: '',
       supabaseUrl: '',
       supabaseAnonKey: '',
       sentryDsn: 'https://public@o0.ingest.sentry.io/0',

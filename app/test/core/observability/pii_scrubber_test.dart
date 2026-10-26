@@ -15,6 +15,13 @@ void main() {
       );
     });
 
+    test('masks tag tokens in API paths', () {
+      expect(
+        PiiScrubber.scrubString('GET /v1/tags/AbCdEfGhIjKlMnOpQrStUv 404'),
+        'GET /v1/tags/[token] 404',
+      );
+    });
+
     test('leaves ordinary text alone', () {
       expect(PiiScrubber.scrubString('sync failed: 503'), 'sync failed: 503');
     });

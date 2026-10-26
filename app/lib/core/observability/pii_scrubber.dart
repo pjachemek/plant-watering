@@ -9,12 +9,13 @@ abstract final class PiiScrubber {
     caseSensitive: false,
   );
   static final RegExp _email = RegExp(r'[^\s@]+@[^\s@]+\.[^\s@]+');
-  static final RegExp _tagPath = RegExp('/p/[A-Za-z0-9]+');
+  // Tag tokens appear in web paths (/p/{token}) and API paths (/v1/tags/{token}).
+  static final RegExp _tagPath = RegExp('/(p|tags)/[A-Za-z0-9]+');
   static final RegExp _signedUrlQuery = RegExp(r'\?[^\s]*token=[^\s]*');
 
   static String scrubString(String value) => value
       .replaceAll(_email, '[email]')
-      .replaceAll(_tagPath, '/p/[token]')
+      .replaceAllMapped(_tagPath, (m) => '/${m[1]}/[token]')
       .replaceAll(_signedUrlQuery, '?[redacted]');
 
   static Map<String, dynamic>? _scrubMap(Map<String, dynamic>? map) {
