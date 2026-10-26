@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plantnfc/core/router/not_found_screen.dart';
 import 'package:plantnfc/features/plants/presentation/plants_screen.dart';
+import 'package:plantnfc/features/scan/presentation/nfc_spike_screen.dart';
 import 'package:plantnfc/features/scan/presentation/tag_screen.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,6 +15,9 @@ abstract final class AppRoutes {
   static const String tag = '/p/:tagToken';
 
   static String tagPath(String tagToken) => '/p/$tagToken';
+
+  /// Developer NFC test screen (M1). Registered in debug builds only.
+  static const String nfcSpike = '/dev/nfc';
 }
 
 @Riverpod(keepAlive: true)
@@ -29,6 +34,11 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) =>
             TagScreen(tagToken: state.pathParameters['tagToken']!),
       ),
+      if (kDebugMode)
+        GoRoute(
+          path: AppRoutes.nfcSpike,
+          builder: (context, state) => const NfcSpikeScreen(),
+        ),
     ],
     errorBuilder: (context, state) => const NotFoundScreen(),
   );

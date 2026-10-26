@@ -43,4 +43,95 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notFoundTitle => 'Page not found';
+
+  @override
+  String get nfcSpikeTitle => 'NFC test';
+
+  @override
+  String get nfcSpikeOpenAction => 'NFC test';
+
+  @override
+  String get nfcSpikeIntro =>
+      'Write a test link to a sticker, or read what a sticker holds. Test links open the plant tag screen.';
+
+  @override
+  String get nfcWriteAction => 'Write test sticker';
+
+  @override
+  String get nfcReadAction => 'Read sticker';
+
+  @override
+  String get nfcHoldNearTitle => 'Hold your phone near the sticker';
+
+  @override
+  String get nfcHoldNearBody => 'Keep it still until you feel a vibration.';
+
+  @override
+  String get nfcStickerIllustrationLabel => 'NFC sticker';
+
+  @override
+  String get cancelAction => 'Cancel';
+
+  @override
+  String get retryAction => 'Try again';
+
+  @override
+  String get nfcWriteSuccess => 'Sticker written and checked';
+
+  @override
+  String get nfcReadPlantLink => 'This sticker holds a plant link';
+
+  @override
+  String get nfcReadEmpty => 'This sticker is empty';
+
+  @override
+  String get nfcReadForeign => 'This sticker holds data from another app';
+
+  @override
+  String get nfcOpenTagAction => 'Open plant link';
+
+  @override
+  String get nfcOverwritePlantTitle => 'This sticker already has a plant link';
+
+  @override
+  String get nfcOverwriteForeignTitle =>
+      'This sticker already holds other data';
+
+  @override
+  String get nfcOverwriteBody =>
+      'Writing replaces what is on it. Hold your phone near the sticker again to continue.';
+
+  @override
+  String get nfcOverwriteAction => 'Overwrite sticker';
+
+  @override
+  String get nfcErrorDisabled =>
+      'NFC is turned off. Turn it on in your phone settings, then try again.';
+
+  @override
+  String get nfcErrorUnsupported =>
+      'This phone can’t read NFC stickers. You can use QR codes instead.';
+
+  @override
+  String get nfcErrorNotNdef =>
+      'This sticker type isn’t supported. Use an NTAG213 or NTAG215 sticker.';
+
+  @override
+  String get nfcErrorReadOnly => 'This sticker is locked and can’t be written.';
+
+  @override
+  String get nfcErrorTooSmall =>
+      'This sticker is too small for the link. Use an NTAG213 or larger sticker.';
+
+  @override
+  String get nfcErrorTagLost =>
+      'The phone moved away too soon. Hold it still on the sticker and try again.';
+
+  @override
+  String get nfcErrorNotVerified =>
+      'The sticker didn’t save the link correctly. Try again.';
+
+  @override
+  String get nfcErrorUnknown =>
+      'Something went wrong with the sticker. Try again.';
 }

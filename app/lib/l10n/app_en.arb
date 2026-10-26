@@ -1,25 +1,155 @@
 {
   "@@locale": "en",
   "appTitle": "Plant NFC",
-  "@appTitle": { "description": "App name shown in the task switcher and app bar." },
+  "@appTitle": {
+    "description": "App name shown in the task switcher and app bar."
+  },
   "plantsTitle": "Plants",
-  "@plantsTitle": { "description": "Title of the home screen that lists the household's plants." },
+  "@plantsTitle": {
+    "description": "Title of the home screen that lists the household's plants."
+  },
   "plantsEmptyTitle": "No plants yet",
-  "@plantsEmptyTitle": { "description": "Heading of the empty state on the home screen." },
+  "@plantsEmptyTitle": {
+    "description": "Heading of the empty state on the home screen."
+  },
   "plantsEmptyBody": "Add your first plant, then stick an NFC tag on its pot. Tap the tag with your phone to see how and when to water it.",
-  "@plantsEmptyBody": { "description": "Explanation in the empty state on the home screen." },
+  "@plantsEmptyBody": {
+    "description": "Explanation in the empty state on the home screen."
+  },
   "plantsEmptyIllustrationLabel": "Potted plant illustration",
-  "@plantsEmptyIllustrationLabel": { "description": "Screen reader label for the empty-state illustration." },
+  "@plantsEmptyIllustrationLabel": {
+    "description": "Screen reader label for the empty-state illustration."
+  },
   "addPlantAction": "Add plant",
-  "@addPlantAction": { "description": "Button that starts the add-plant flow." },
+  "@addPlantAction": {
+    "description": "Button that starts the add-plant flow."
+  },
   "comingSoon": "Coming soon",
-  "@comingSoon": { "description": "Short message shown for features not built yet in this preview build." },
+  "@comingSoon": {
+    "description": "Short message shown for features not built yet in this preview build."
+  },
   "tagOpeningTitle": "Plant tag",
-  "@tagOpeningTitle": { "description": "Title of the screen opened by scanning a plant tag." },
+  "@tagOpeningTitle": {
+    "description": "Title of the screen opened by scanning a plant tag."
+  },
   "tagOpeningBody": "This tag link opened the app. Plant cards arrive in a later build.",
-  "@tagOpeningBody": { "description": "Placeholder text on the tag screen until plant cards are built." },
+  "@tagOpeningBody": {
+    "description": "Placeholder text on the tag screen until plant cards are built."
+  },
   "backToPlantsAction": "Go to plants",
-  "@backToPlantsAction": { "description": "Button that leaves the tag screen and opens the plant list." },
+  "@backToPlantsAction": {
+    "description": "Button that leaves the tag screen and opens the plant list."
+  },
   "notFoundTitle": "Page not found",
-  "@notFoundTitle": { "description": "Title shown when a link points to a screen that doesn't exist." }
+  "@notFoundTitle": {
+    "description": "Title shown when a link points to a screen that doesn't exist."
+  },
+  "nfcSpikeTitle": "NFC test",
+  "@nfcSpikeTitle": {
+    "description": "Title of the developer screen for testing NFC sticker writing and reading."
+  },
+  "nfcSpikeOpenAction": "NFC test",
+  "@nfcSpikeOpenAction": {
+    "description": "Developer menu button that opens the NFC test screen. Debug builds only."
+  },
+  "nfcSpikeIntro": "Write a test link to a sticker, or read what a sticker holds. Test links open the plant tag screen.",
+  "@nfcSpikeIntro": {
+    "description": "Explanation at the top of the NFC test screen."
+  },
+  "nfcWriteAction": "Write test sticker",
+  "@nfcWriteAction": {
+    "description": "Button that writes a new test link to an NFC sticker."
+  },
+  "nfcReadAction": "Read sticker",
+  "@nfcReadAction": {
+    "description": "Button that reads an NFC sticker."
+  },
+  "nfcHoldNearTitle": "Hold your phone near the sticker",
+  "@nfcHoldNearTitle": {
+    "description": "Shown while the app waits for an NFC sticker."
+  },
+  "nfcHoldNearBody": "Keep it still until you feel a vibration.",
+  "@nfcHoldNearBody": {
+    "description": "Hint shown while waiting for an NFC sticker."
+  },
+  "nfcStickerIllustrationLabel": "NFC sticker",
+  "@nfcStickerIllustrationLabel": {
+    "description": "Screen reader label for the NFC sticker illustration."
+  },
+  "cancelAction": "Cancel",
+  "@cancelAction": {
+    "description": "Generic cancel button."
+  },
+  "retryAction": "Try again",
+  "@retryAction": {
+    "description": "Generic retry button."
+  },
+  "nfcWriteSuccess": "Sticker written and checked",
+  "@nfcWriteSuccess": {
+    "description": "Shown after a link was written to a sticker and read back correctly."
+  },
+  "nfcReadPlantLink": "This sticker holds a plant link",
+  "@nfcReadPlantLink": {
+    "description": "Result of reading a sticker that holds one of our links."
+  },
+  "nfcReadEmpty": "This sticker is empty",
+  "@nfcReadEmpty": {
+    "description": "Result of reading a sticker with no data."
+  },
+  "nfcReadForeign": "This sticker holds data from another app",
+  "@nfcReadForeign": {
+    "description": "Result of reading a sticker that holds something other than our link."
+  },
+  "nfcOpenTagAction": "Open plant link",
+  "@nfcOpenTagAction": {
+    "description": "Button that opens the plant tag screen for the link that was just read."
+  },
+  "nfcOverwritePlantTitle": "This sticker already has a plant link",
+  "@nfcOverwritePlantTitle": {
+    "description": "Title asking to confirm overwriting a sticker that holds another plant link."
+  },
+  "nfcOverwriteForeignTitle": "This sticker already holds other data",
+  "@nfcOverwriteForeignTitle": {
+    "description": "Title asking to confirm overwriting a sticker with foreign data."
+  },
+  "nfcOverwriteBody": "Writing replaces what is on it. Hold your phone near the sticker again to continue.",
+  "@nfcOverwriteBody": {
+    "description": "Explanation in the overwrite confirmation."
+  },
+  "nfcOverwriteAction": "Overwrite sticker",
+  "@nfcOverwriteAction": {
+    "description": "Button that confirms overwriting a sticker."
+  },
+  "nfcErrorDisabled": "NFC is turned off. Turn it on in your phone settings, then try again.",
+  "@nfcErrorDisabled": {
+    "description": "Error when NFC is disabled."
+  },
+  "nfcErrorUnsupported": "This phone can’t read NFC stickers. You can use QR codes instead.",
+  "@nfcErrorUnsupported": {
+    "description": "Error when the phone has no NFC."
+  },
+  "nfcErrorNotNdef": "This sticker type isn’t supported. Use an NTAG213 or NTAG215 sticker.",
+  "@nfcErrorNotNdef": {
+    "description": "Error when the tag cannot hold NDEF data."
+  },
+  "nfcErrorReadOnly": "This sticker is locked and can’t be written.",
+  "@nfcErrorReadOnly": {
+    "description": "Error when the tag is read-only."
+  },
+  "nfcErrorTooSmall": "This sticker is too small for the link. Use an NTAG213 or larger sticker.",
+  "@nfcErrorTooSmall": {
+    "description": "Error when the link does not fit on the tag."
+  },
+  "nfcErrorTagLost": "The phone moved away too soon. Hold it still on the sticker and try again.",
+  "@nfcErrorTagLost": {
+    "description": "Error when the tag connection was lost."
+  },
+  "nfcErrorNotVerified": "The sticker didn’t save the link correctly. Try again.",
+  "@nfcErrorNotVerified": {
+    "description": "Error when read-back verification failed."
+  },
+  "nfcErrorUnknown": "Something went wrong with the sticker. Try again.",
+  "@nfcErrorUnknown": {
+    "description": "Generic NFC error."
+  }
 }

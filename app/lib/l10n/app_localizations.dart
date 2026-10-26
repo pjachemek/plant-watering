@@ -159,6 +159,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Page not found'**
   String get notFoundTitle;
+
+  /// Title of the developer screen for testing NFC sticker writing and reading.
+  ///
+  /// In en, this message translates to:
+  /// **'NFC test'**
+  String get nfcSpikeTitle;
+
+  /// Developer menu button that opens the NFC test screen. Debug builds only.
+  ///
+  /// In en, this message translates to:
+  /// **'NFC test'**
+  String get nfcSpikeOpenAction;
+
+  /// Explanation at the top of the NFC test screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a test link to a sticker, or read what a sticker holds. Test links open the plant tag screen.'**
+  String get nfcSpikeIntro;
+
+  /// Button that writes a new test link to an NFC sticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Write test sticker'**
+  String get nfcWriteAction;
+
+  /// Button that reads an NFC sticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Read sticker'**
+  String get nfcReadAction;
+
+  /// Shown while the app waits for an NFC sticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold your phone near the sticker'**
+  String get nfcHoldNearTitle;
+
+  /// Hint shown while waiting for an NFC sticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it still until you feel a vibration.'**
+  String get nfcHoldNearBody;
+
+  /// Screen reader label for the NFC sticker illustration.
+  ///
+  /// In en, this message translates to:
+  /// **'NFC sticker'**
+  String get nfcStickerIllustrationLabel;
+
+  /// Generic cancel button.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelAction;
+
+  /// Generic retry button.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retryAction;
+
+  /// Shown after a link was written to a sticker and read back correctly.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticker written and checked'**
+  String get nfcWriteSuccess;
+
+  /// Result of reading a sticker that holds one of our links.
+  ///
+  /// In en, this message translates to:
+  /// **'This sticker holds a plant link'**
+  String get nfcReadPlantLink;
+
+  /// Result of reading a sticker with no data.
+  ///
+  /// In en, this message translates to:
+  /// **'This sticker is empty'**
+  String get nfcReadEmpty;
+
+  /// Result of reading a sticker that holds something other than our link.
+  ///
+  /// In en, this message translates to:
+  /// **'This sticker holds data from another app'**
+  String get nfcReadForeign;
+
+  /// Button that opens the plant tag screen for the link that was just read.
+  ///
+  /// In en, this message translates to:
+  /// **'Open plant link'**
+  String get nfcOpenTagAction;
+
+  /// Title asking to confirm overwriting a sticker that holds another plant link.
+  ///
+  /// In en, this message translates to:
+  /// **'This sticker already has a plant link'**
+  String get nfcOverwritePlantTitle;
+
+  /// Title asking to confirm overwriting a sticker with foreign data.
+  ///
+  /// In en, this message translates to:
+  /// **'This sticker already holds other data'**
+  String get nfcOverwriteForeignTitle;
+
+  /// Explanation in the overwrite confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Writing replaces what is on it. Hold your phone near the sticker again to continue.'**
+  String get nfcOverwriteBody;
+
+  /// Button that confirms overwriting a sticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwrite sticker'**
+  String get nfcOverwriteAction;
+
+  /// Error when NFC is disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'NFC is turned off. Turn it on in your phone settings, then try again.'**
+  String get nfcErrorDisabled;
+
+  /// Error when the phone has no NFC.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone can’t read NFC stickers. You can use QR codes instead.'**
+  String get nfcErrorUnsupported;
+
+  /// Error when the tag cannot hold NDEF data.
+  ///
+  /// In en, this message translates to:
+  /// **'This sticker type isn’t supported. Use an NTAG213 or NTAG215 sticker.'**
+  String get nfcErrorNotNdef;
+
+  /// Error when the tag is read-only.
+  ///
+  /// In en, this message translates to:
+  /// **'This sticker is locked and can’t be written.'**
+  String get nfcErrorReadOnly;
+
+  /// Error when the link does not fit on the tag.
+  ///
+  /// In en, this message translates to:
+  /// **'This sticker is too small for the link. Use an NTAG213 or larger sticker.'**
+  String get nfcErrorTooSmall;
+
+  /// Error when the tag connection was lost.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone moved away too soon. Hold it still on the sticker and try again.'**
+  String get nfcErrorTagLost;
+
+  /// Error when read-back verification failed.
+  ///
+  /// In en, this message translates to:
+  /// **'The sticker didn’t save the link correctly. Try again.'**
+  String get nfcErrorNotVerified;
+
+  /// Generic NFC error.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong with the sticker. Try again.'**
+  String get nfcErrorUnknown;
 }
 
 class _AppLocalizationsDelegate
