@@ -1,0 +1,1 @@
+-- Local development seed data. Never put real user data here (AGENTS.md section 12).
