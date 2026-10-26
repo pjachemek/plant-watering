@@ -1,0 +1,31 @@
+// Cloudflare Workers config for the app domain (ADR-0004).
+// Secrets (SENTRY_DSN, SUPABASE_SERVICE_ROLE_KEY, WEBHOOK_SECRET) are set with
+// `wrangler secret put`, never committed. See ../.env.example.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "plant-nfc-dev",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "vars": {
+    "APP_ENV": "dev",
+    "SUPABASE_URL": "http://127.0.0.1:54321",
+  },
+  "env": {
+    "staging": {
+      "name": "plant-nfc-staging",
+      "vars": {
+        "APP_ENV": "staging",
+        "SUPABASE_URL": "https://STAGING_PROJECT_REF.supabase.co",
+      },
+    },
+    "production": {
+      "name": "plant-nfc-production",
+      "vars": {
+        "APP_ENV": "production",
+        "SUPABASE_URL": "https://PROD_PROJECT_REF.supabase.co",
+      },
+    },
+  },
+}

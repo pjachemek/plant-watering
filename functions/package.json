@@ -1,0 +1,41 @@
+{
+  "name": "plant-nfc-functions",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "types": "wrangler types",
+    "types:check": "wrangler types --check"
+  },
+  "dependencies": {
+    "@sentry/cloudflare": "11.8.0",
+    "hono": "4.13.13"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.4.7",
+    "@eslint/js": "10.0.1",
+    "@vitest/coverage-istanbul": "5.0.5",
+    "eslint": "10.13.0",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0",
+    "vitest": "5.0.5",
+    "wrangler": "4.152.0"
+  },
+  "allowScripts": {
+    "workerd@1.20261019.1": true,
+    "esbuild@0.28.2": true
+  }
+}

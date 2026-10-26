@@ -1,0 +1,2 @@
+# Copy to functions/.dev.vars for `wrangler dev`. Never commit .dev.vars.
+SENTRY_DSN=
