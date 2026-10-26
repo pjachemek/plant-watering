@@ -2,6 +2,8 @@ import { captureException } from "@sentry/cloudflare";
 import { Hono } from "hono";
 import { secureHeaders } from "hono/secure-headers";
 import type { Bindings } from "./env";
+import { tagPage } from "./routes/tag-page";
+import { wellKnown } from "./routes/well-known";
 
 /**
  * Builds the Hono app. Kept separate from the Worker entry point so tests can
@@ -31,6 +33,9 @@ export function createApp(): Hono<{ Bindings: Bindings }> {
       "Cache-Control": "no-store",
     }),
   );
+
+  app.route("/.well-known", wellKnown);
+  app.route("/p", tagPage);
 
   app.notFound((c) => c.text("Not found", 404));
 

@@ -22,6 +22,8 @@
     },
     "production": {
       "name": "plant-nfc-production",
+      // Needs the pampait.pl zone on this Cloudflare account (docs/deploy.md).
+      "routes": [{ "pattern": "plants.pampait.pl", "custom_domain": true }],
       "vars": {
         "APP_ENV": "production",
         "SUPABASE_URL": "https://PROD_PROJECT_REF.supabase.co",
