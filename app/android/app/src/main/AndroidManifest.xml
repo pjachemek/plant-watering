@@ -1,5 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.NFC"/>
+    <!-- Optional so phones without NFC can install the app and use QR codes
+         (AGENTS.md section 7). -->
+    <uses-feature android:name="android.hardware.nfc" android:required="false"/>
 
     <!-- Backups are off so session tokens never leave the device (NFR Security, MASVS L1).
          Cleartext is blocked by network_security_config; debug builds allow only the
@@ -33,6 +37,28 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Tag scanned while the app is installed: Android's tag dispatcher
+                 delivers the URI record straight to us, with no browser or
+                 chooser (ADR-0010). -->
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="https"
+                    android:host="plants.pampait.pl"
+                    android:pathPrefix="/p/"/>
+            </intent-filter>
+            <!-- Verified App Link for the same URLs opened anywhere else
+                 (QR codes, messages). Needs /.well-known/assetlinks.json. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="plants.pampait.pl"
+                    android:pathPrefix="/p/"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
