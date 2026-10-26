@@ -1,6 +1,6 @@
 # ADR-0004: Backend on Supabase and Cloudflare Workers, no Deno
 
-- Status: Accepted
+- Status: Accepted; partly superseded by [ADR-0012](0012-api-gateway.md) (clients no longer call Supabase directly, no Realtime, no database webhooks)
 - Date: 2026-10-23
 - Related: AGENTS.md sections 4 and 6; NFR Security, Observability
 

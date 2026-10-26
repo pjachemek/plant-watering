@@ -92,6 +92,8 @@ Each story lists its acceptance criteria. IDs (FR-x) are referenced in commits, 
 
 **FR-9 Account and data.** In-app account deletion, data export (JSON), privacy policy and terms links.
 
+**FR-10 App updates.** Below the minimum supported version, the app shows a blocking screen with a store link; below the recommended version, a dismissible prompt. Data entered offline is kept and synced after updating.
+
 ## 4. Tech stack
 
 Defaults below are decided unless section 12 says otherwise. Use the latest stable versions at project start and pin them; do not add a dependency without an ADR stating why, its licence and its maintenance status. Do not use Deno or any Deno-based service, including Supabase Edge Functions: after Cloudflare's acquisition of Deno, the runtime only gets about a year of fixes. Server code targets standard Web APIs so it can move between runtimes.
@@ -105,8 +107,9 @@ Defaults below are decided unless section 12 says otherwise. Use the latest stab
 | Models | freezed + json\_serializable | Immutable models, exhaustive unions |
 | NFC | nfc\_manager | NDEF read/write on iOS and Android |
 | Notifications | flutter\_local\_notifications + Firebase Cloud Messaging (data messages only) | Local scheduling; silent push triggers sync and reminder refresh |
-| Backend | Supabase: Postgres, Auth, Row Level Security, Realtime, Storage (no Edge Functions) | Relational household model, RLS for isolation, realtime sync, open source, low cost |
-| Server functions, web fallback and link hosting | Cloudflare Workers (TypeScript, Hono) on the app domain; tests with Vitest | One place for server logic, plant pages, AASA and assetlinks; Hono code also runs on Node or Bun if needed |
+| Backend | Supabase: Postgres, Auth, Storage. No Edge Functions; Data API disabled for clients | Managed Postgres and sign-in; RLS as defence in depth; open source, low cost |
+| API contract | OpenAPI 3.1 spec in the repo; Zod validation in the Worker; Dart client generated from the spec | One source of truth for the app–backend boundary; breaking changes caught in CI |
+| API gateway, web fallback and link hosting | Cloudflare Workers (TypeScript, Hono): versioned API at api.\<domain>/v1 plus web pages; Hyperdrive for Postgres connections; tests with Vitest | The only backend the app talks to; owns the contract so the database can change without breaking old app versions; Hono also runs on Node or Bun |
 | Crash and error reporting | Sentry (mobile + Workers), PII scrubbing on | Single view across platforms |
 | CI/CD | GitHub Actions + fastlane | Automated tests, signed builds, store uploads |
 | Infrastructure as code | Supabase CLI migrations, config in repo | Reproducible environments |
@@ -119,7 +122,7 @@ The app is offline-first: the local database is the source of truth for the UI, 
 
 - **Presentation:** widgets and Riverpod notifiers. No business logic, no direct database or network calls.
 - **Domain:** entities, value objects, use cases (e.g. `LogWatering`, `ComputeNextDue`). Pure Dart, no Flutter imports, 100% unit-testable.
-- **Data:** repositories implementing domain interfaces; local (Drift) and remote (Supabase) data sources.
+- **Data:** repositories implementing domain interfaces; local (Drift) and remote (versioned API, see below) data sources.
 
 Shared code lives in `core/` (design system, theming, logging, error types, result type). Platform services (NFC, notifications, camera, connectivity) sit behind interfaces so they can be faked in tests.
 
@@ -127,7 +130,9 @@ Shared code lives in `core/` (design system, theming, logging, error types, resu
 
 1. UI watches a repository stream backed by Drift and renders immediately from local data.
 2. User actions write to Drift and append a row to an outbox table in the same transaction.
-3. The sync engine drains the outbox to Supabase with retries and exponential backoff, and pulls remote changes via Realtime when online and a delta query (`updated_at > last_sync`) on app start and resume.
+3. The sync engine drains the outbox to the API (POST /v1/sync/push) with retries and exponential backoff, and pulls remote changes from GET /v1/sync/pull on silent push and with a delta query (`updated_at > last_sync`) on app start and resume.
+
+**API client.** The app depends only on the versioned API, through a Dart client generated from the OpenAPI spec. The Supabase SDK is used for sign-in and token refresh only. Every request sends `X-App-Version`, `X-Platform` and `X-API-Version`. A `426 Upgrade Required` response opens a blocking update screen; below the recommended version, a dismissible prompt appears. Parsing is tolerant: unknown fields and enum values are ignored, never fatal.
 
 **Conflict rules.**
 
@@ -143,7 +148,17 @@ Shared code lives in `core/` (design system, theming, logging, error types, resu
 
 ## 6. Backend architecture
 
-Supabase provides the database, auth, realtime and storage; a few Cloudflare Workers hold the remaining server logic. Keep that logic thin and put every access rule in the database through Row Level Security.
+The app talks to exactly one backend: a versioned API on Cloudflare Workers. Supabase sits behind it as a private database, auth and storage platform; the app never reads or writes tables directly, so the schema can change without breaking app versions in the wild.
+
+**API gateway and contract**
+
+- Base URL `https://api.plants.pampait.pl/v1`. MVP endpoints: `POST /sync/push`, `GET /sync/pull?cursor=`, `POST /households`, `POST /invites`, `POST /invites/accept`, `GET /tags/{token}`, `POST /photos/upload-url`, `GET /account/export`, `DELETE /account`, `GET /config`.
+- The OpenAPI 3.1 spec in the repo is the source of truth. The Worker validates every request and response against it; the Dart client is generated from it.
+- The app signs in with Supabase Auth and sends the access token. The Worker verifies it against Supabase's published signing keys (JWKS) and rejects anything else.
+- Versioning: major version in the URL; changes within a version are additive only. A breaking change means a new version run side by side. Old versions return a `Sunset` header and stay available for at least 6 months after their replacement ships.
+- Version enforcement: minimum and recommended app versions per platform live in a config table, served by `GET /config`. Requests below the minimum get `426 Upgrade Required`.
+- Push requests carry client UUIDs and an `Idempotency-Key`; responses report a result per item, so retries are safe.
+- Rate limits per user on all endpoints and per IP on public ones.
 
 **Environments.** Three Supabase projects: `dev`, `staging`, `prod`. Schema changes only through versioned SQL migrations in the repo (`supabase/migrations`), applied by CI. No manual changes in the dashboard.
 
@@ -151,21 +166,21 @@ Supabase provides the database, auth, realtime and storage; a few Cloudflare Wor
 
 - RLS enabled on every table, default deny. Policies grant access only where `household_id` is in the caller's memberships.
 - A `security definer` helper `is_member(household_id)` is used by all policies; it is covered by tests.
-- The mobile app uses only the anon key plus the user's JWT. The service role key never leaves the server.
+- The mobile app uses the anon key for Supabase Auth only. The Data API is disabled for client roles, so tables, views and functions are unreachable from the app. The service role key never leaves the server.
 - Write policy tests (pgTAP or SQL test scripts) proving a user cannot read or write another household's rows.
 
-**Server functions on Cloudflare Workers (TypeScript, Ho**no), each small and tested:
+**Worker handlers behind the API**, each small and tested:
 
 - `create-invite` and `accept-invite`: generate and redeem single-use, expiring invite codes.
 - `public-plant`: given a tag token, returns the public care card fields only, or 404. Rate-limited.
-- `notify-household`: on new watering event (database webhook), sends FCM data messages to other members' devices so they refresh and clear reminders.
+- `notify-household`: after a push containing new watering events, sends FCM data messages to other members' devices so they refresh and clear reminders.
 - `delete-account` and `export-data`: GDPR flows.
 
-Workers verify the caller's Supabase JWT and call Supabase with that JWT, so RLS still applies. Only `delete-account` and `notify-household` use the service role key, stored as a Workers secret. Database webhooks to Workers are signed with a shared secret and verified.
+The Worker reaches Postgres through Cloudflare Hyperdrive with a dedicated database role. In each transaction it sets the verified user's claims, so RLS policies still apply as defence in depth. Business logic lives in Worker code and private Postgres functions that clients cannot call. Account deletion and notifications use narrowly scoped elevated functions. Because every write passes through the Worker, no database webhooks are needed.
 
-**Realtime.** Clients subscribe to changes on `plants` and `watering_events` filtered by their household. Realtime is an optimisation; correctness never depends on it (the delta pull covers missed events).
+**Change notifications.** Clients never subscribe to tables. When household data changes, the Worker sends an FCM silent push with a small versioned payload, e.g. `{"type":"changed","v":1,"cursor":"…"}`, and the app pulls through the API. Supabase Realtime is not used in MVP. If lower latency is needed later, use a Realtime Broadcast channel carrying the same payload, never table change subscriptions.
 
-**Storage.** Plant photos in a private bucket, path `household_id/plant_id/uuid.jpg`, with RLS. Client resizes to max 1600 px and strips EXIF location before upload. Serve via short-lived signed URLs; cache on device.
+**Storage.** Plant photos in a private bucket, path `household_id/plant_id/uuid.jpg`, with RLS. Client resizes to max 1600 px and strips EXIF location before upload. The API issues short-lived signed upload and download URLs; cache on device.
 
 **App domain.** One domain (`plants.pampait.pl`) hosts:
 
@@ -173,6 +188,8 @@ Workers verify the caller's Supabase JWT and call Supabase with that JWT, so RLS
 - `/.well-known/assetlinks.json` (Android App Links, `autoVerify` enabled).
 - `/p/{tagToken}`: the web fallback page, server-rendered, under 50 KB, no third-party scripts or cookies.
 - Privacy policy, terms and support pages.
+
+The API is served from `api.plants.pampait.pl` by the same Worker project.
 
 ## 7. NFC specification
 
@@ -271,6 +288,8 @@ These are acceptance criteria, measured on a mid-range Android phone about three
 | Compatibility | OS versions | iOS 16+ and Android 8.0 (API 26)+ unless current stable Flutter requires higher (record in ADR) |
 | Scalability | Capacity without redesign | 10,000 households on the smallest paid Supabase tier; indexes on all foreign keys and `watered_at` |
 | Observability | Errors and health | Sentry on app and Workers with release tracking; uptime check on the web fallback; alert on error spikes |
+| Compatibility | Old app versions keep working; breaking changes only through a new API version | CI blocks breaking spec changes within a version; ≥ 6 months from replacement to sunset |
+| Compatibility | Upgrade enforcement for unsupported app versions | 100% of requests carry version headers; minimum version changeable without an app release |
 | Maintainability | Code quality | Strict lint rules, zero warnings in CI; formatter enforced |
 | Maintainability | Test coverage | Domain layer ≥ 90%, overall ≥ 70% |
 | Maintainability | Onboarding | New developer runs the app locally in ≤ 15 minutes using the README |
@@ -279,7 +298,7 @@ These are acceptance criteria, measured on a mid-range Android phone about three
 
 ## 10. Engineering practices
 
-**Repository.** One monorepo: `app/` (Flutter), `supabase/` (migrations, policies, tests), functions/ (Cloudflare Workers), `web/` (fallback page and well-known files), `presets/` (JSON, schema, validator), `docs/adr/`, `docs/status/` (session status notes), `tools/` (developer tooling such as the Flutter Docker image), `AGENTS.md`.
+**Repository.** One monorepo: `app/` (Flutter), `supabase/` (migrations, policies, tests), functions/ (Cloudflare Workers API; openapi.yaml is the contract), `web/` (fallback page and well-known files), `presets/` (JSON, schema, validator), `docs/adr/`, `docs/status/` (session status notes), `tools/` (developer tooling such as the Flutter Docker image), `AGENTS.md`.
 
 **Testing**
 
@@ -295,7 +314,7 @@ These are acceptance criteria, measured on a mid-range Android phone about three
 
 - Format check, lint, unit, widget and golden tests, coverage thresholds.
 - Supabase migrations applied to a fresh local database; RLS tests run.
-- Preset JSON schema validation.
+- Preset JSON schema validation; API contract tests and an OpenAPI breaking-change check (e.g. oasdiff) against the last released spec.
 - Secret scanning and dependency vulnerability scan.
 - Debug builds for iOS and Android must succeed.
 
@@ -303,7 +322,7 @@ These are acceptance criteria, measured on a mid-range Android phone about three
 
 - Merges to `main` deploy to staging and ship internal builds (TestFlight, Play internal testing) via fastlane.
 - Production releases from tags, with phased rollout on both stores.
-- Database migrations are backward compatible with the previous app version (expand, migrate, then contract).
+- Database migrations never reach clients directly: every supported API version keeps working across them (expand, migrate, then contract).
 
 **Conventions**
 
@@ -318,7 +337,7 @@ Work strictly in this order; each milestone ends with a demo on real devices and
 
 1. **M0 Foundations.** Monorepo, Flutter skeleton with design tokens and theming, CI pipeline, three Supabase environments, Sentry, ADRs for the stack. Exit: CI green, app launches on both platforms.
 2. **M1 NFC spike.** Write a link to a tag; scanning opens the app on a test route on both platforms (installed, killed, locked). Domain with AASA and assetlinks live. Exit: test matrix passes; findings recorded in an ADR.
-3. **M2 Data and sync.** Schema, migrations, RLS with tests, auth, household and invites, Drift database, outbox and sync engine. Exit: two devices on different platforms share plants and waterings, including offline-then-reconnect.
+3. **M2 Data and sync.** Schema, migrations, RLS with tests, auth, API gateway with OpenAPI contract and version enforcement, household and invites, Drift database, outbox and sync engine. Exit: two devices on different platforms share plants and waterings, including offline-then-reconnect.
 4. **M3 Presets.** Schema, validator, first 40 presets, offline search. Exit: search meets the 100 ms target; CI validates the file.
 5. **M4 Core UX.** Plant list, plant card, add-plant and write-tag flow, log watering with undo, edit and delete, photos. Exit: FR-1, 2, 3, 5, 6 pass; usability target ≤ 60 s met.
 6. **M5 Reminders.** Next-due logic, seasons, daily digest, push on household waterings. Exit: FR-4 passes; no reminder fires for a plant already watered by someone else.
@@ -351,7 +370,8 @@ Work strictly in this order; each milestone ends with a demo on real devices and
 - [x] Framework: Flutter (confirmed 2026-10-23, ADR-0008).
 - [x] Platforms: **Android only for now; iOS deferred** (2026-10-23, ADR-0009). Where this brief says iOS, iPhone or "both platforms", apply it to Android until iOS resumes.
 - [ ] Personal use only, or public store release? This sets the M7 scope (store listings, support page, legal review).
-- [x] Domain `plants.pampait.pl`; bundle ID and application ID `pl.pampait.plantnfc` (confirmed 2026-10-23, ADR-0008). App name still provisional ("Plant NFC").
+- [x] Domain `plants.pampait.pl` (API at `api.plants.pampait.pl`); bundle ID and application ID `pl.pampait.plantnfc` (confirmed 2026-10-23, ADR-0008). App name still provisional ("Plant NFC").
+- [x] Architecture: the app talks only to the versioned API on Cloudflare Workers, never to Supabase tables (confirmed 2026-10-26, ADR-0012).
 - [ ] App languages for v1 and the default hemisphere for seasons.
 - [ ] Push provider: FCM for both platforms (default) or direct APNs for iOS.
 - [ ] Should the web fallback card be on or off by default for new households?
