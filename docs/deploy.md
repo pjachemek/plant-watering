@@ -1,6 +1,9 @@
-# Deploying the app domain (Cloudflare Workers)
+# Deploying the Worker (Cloudflare)
 
-`plants.pampait.pl` is served by the Worker in `functions/`. It hosts the App Links file, the iOS association file (for later) and the `/p/{token}` page. M1 needs it live before App Links can verify on real phones.
+One Worker in `functions/` serves two hosts (ADR-0012):
+
+- `plants.pampait.pl`: the App Links file, the iOS association file (for later) and the `/p/{token}` page. M1 needs it live before App Links can verify on real phones.
+- `api.plants.pampait.pl`: the versioned API under `/v1`. It answers `/health` now; the endpoints arrive in M2.
 
 ## One-time setup (product owner)
 
@@ -9,7 +12,7 @@
    ```sh
    npx wrangler login
    ```
-3. **Deploy** the production environment. `wrangler.jsonc` declares `plants.pampait.pl` as a custom domain, so Cloudflare creates the DNS record and TLS certificate on first deploy:
+3. **Deploy** the production environment. `wrangler.jsonc` declares both hosts as custom domains, so Cloudflare creates their DNS records and TLS certificates on deploy (the API host is added on the first deploy after this change):
    ```sh
    cd functions
    npm ci
@@ -19,6 +22,8 @@
    ```sh
    curl -i https://plants.pampait.pl/.well-known/assetlinks.json
    curl -i https://plants.pampait.pl/health
+   curl -i https://api.plants.pampait.pl/health
+   curl -i https://api.plants.pampait.pl/v1/anything   # 404, application/problem+json
    ```
    The first must return `200` with `content-type: application/json` and no redirect. You can also use Google's checker: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://plants.pampait.pl&relation=delegate_permission/common.handle_all_urls`
 

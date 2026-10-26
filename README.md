@@ -9,7 +9,7 @@ The product and technical brief is [AGENTS.md](AGENTS.md). Decisions are recorde
 | Path | What |
 | --- | --- |
 | [app/](app/) | Flutter app (Android; iOS deferred, see ADR-0009) |
-| [functions/](functions/) | Cloudflare Workers: server functions, web fallback, link hosting |
+| [functions/](functions/) | Cloudflare Worker: the versioned API (`api.plants.pampait.pl/v1`, the only backend the app talks to) plus the web fallback and link hosting |
 | [supabase/](supabase/) | Supabase config, SQL migrations, pgTAP tests |
 | [web/](web/) | Well-known files (Universal Links, App Links) |
 | [presets/](presets/) | Plant care presets (from M3) |
@@ -40,7 +40,7 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run --dart-define-from-file=../.env
 ```
 
-On the Android emulator, set `SUPABASE_URL=http://10.0.2.2:54321` in `.env`. Debug builds allow plain HTTP only to the local stack.
+The app reads and writes data only through the API (`API_BASE_URL`); Supabase is used for sign-in only (ADR-0012). On the Android emulator, which sees this PC as `10.0.2.2`, set `API_BASE_URL=http://10.0.2.2:8787/v1` and `SUPABASE_URL=http://10.0.2.2:54321` in `.env`, and `API_HOST=10.0.2.2` in `functions/.dev.vars`. Debug builds allow plain HTTP only to the local stack.
 
 Workers:
 
@@ -48,7 +48,8 @@ Workers:
 cd functions
 npm ci
 cp .dev.vars.example .dev.vars
-npm run dev                 # http://localhost:8787/health
+npm run dev                 # web: http://localhost:8787/health
+                            # API: http://api.localhost:8787/health
 ```
 
 ## Checks (same as CI)
