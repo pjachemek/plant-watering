@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "pl.pampait.plantnfc",
+      "sha256_cert_fingerprints": [
+        "7D:44:10:06:47:61:86:A7:CC:BD:DD:00:53:44:8C:C9:FA:C6:A1:C8:E8:EB:CB:72:CE:83:7E:95:CB:0A:47:14"
+      ]
+    }
+  }
+]

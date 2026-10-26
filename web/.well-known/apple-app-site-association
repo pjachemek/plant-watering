@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["APPLE_TEAM_ID.pl.pampait.plantnfc"],
+        "components": [{ "/": "/p/*", "comment": "Plant tag links (AGENTS.md section 7)" }]
+      }
+    ]
+  }
+}
