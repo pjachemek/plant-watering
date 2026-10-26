@@ -28,14 +28,14 @@ describe("unknown routes", () => {
   });
 });
 
-describe("unhandled errors", () => {
+describe("unhandled errors on the web host", () => {
   it("return a generic 500 without leaking details", async () => {
-    const app = createApp();
-    app.get("/boom", () => {
+    const { web } = createApp();
+    web.get("/boom", () => {
       throw new Error("secret detail for jane@example.com");
     });
 
-    const res = await app.request("/boom", {}, { APP_ENV: "dev" });
+    const res = await web.request("/boom", {}, { APP_ENV: "dev" });
 
     expect(res.status).toBe(500);
     expect(await res.text()).toBe("Internal error");

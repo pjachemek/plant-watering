@@ -1,2 +1,4 @@
 # Copy to functions/.dev.vars for `wrangler dev`. Never commit .dev.vars.
 SENTRY_DSN=
+# Uncomment to serve the API to the Android emulator, which sees this PC as 10.0.2.2.
+# API_HOST=10.0.2.2

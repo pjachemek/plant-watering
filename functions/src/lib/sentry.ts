@@ -2,10 +2,11 @@ import type { ErrorEvent } from "@sentry/cloudflare";
 
 const SENSITIVE_KEYS = /token|email|name|authorization|cookie|photo|jwt|secret|key/i;
 const EMAIL = /[^\s@]+@[^\s@]+\.[^\s@]+/g;
-const TAG_PATH = /\/p\/[A-Za-z0-9]+/g;
+// Tag tokens appear in web paths (/p/{token}) and API paths (/v1/tags/{token}).
+const TAG_PATH = /\/(p|tags)\/[A-Za-z0-9]+/g;
 
 function scrubString(value: string): string {
-  return value.replace(EMAIL, "[email]").replace(TAG_PATH, "/p/[token]");
+  return value.replace(EMAIL, "[email]").replace(TAG_PATH, "/$1/[token]");
 }
 
 function scrubRecord(record: Record<string, unknown> | undefined): void {

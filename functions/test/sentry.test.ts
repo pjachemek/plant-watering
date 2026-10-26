@@ -3,6 +3,15 @@ import { describe, expect, it } from "vitest";
 import { scrubEvent } from "../src/lib/sentry";
 
 describe("scrubEvent", () => {
+  it("redacts tag tokens in API paths too", () => {
+    const event: ErrorEvent = {
+      type: undefined,
+      message: "GET /v1/tags/AbCdEfGhIjKlMnOpQrStUv failed",
+    };
+
+    expect(scrubEvent(event).message).toBe("GET /v1/tags/[token] failed");
+  });
+
   it("removes user, cookies, body and sensitive headers", () => {
     const event: ErrorEvent = {
       type: undefined,

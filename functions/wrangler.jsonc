@@ -1,6 +1,7 @@
-// Cloudflare Workers config for the app domain (ADR-0004).
-// Secrets (SENTRY_DSN, SUPABASE_SERVICE_ROLE_KEY, WEBHOOK_SECRET) are set with
-// `wrangler secret put`, never committed. See ../.env.example.
+// Cloudflare Workers config: the versioned API on API_HOST and the web pages on
+// every other host, from one Worker (ADR-0004, ADR-0012).
+// Secrets (SENTRY_DSN) are set with `wrangler secret put`, never committed.
+// Postgres is reached through a Hyperdrive binding, added in M2. See ../.env.example.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "plant-nfc-dev",
@@ -10,6 +11,8 @@
   "observability": { "enabled": true },
   "vars": {
     "APP_ENV": "dev",
+    // *.localhost resolves to this machine: curl http://api.localhost:8787/health
+    "API_HOST": "api.localhost",
     "SUPABASE_URL": "http://127.0.0.1:54321",
   },
   "env": {
@@ -17,15 +20,20 @@
       "name": "plant-nfc-staging",
       "vars": {
         "APP_ENV": "staging",
+        "API_HOST": "api.staging.plants.pampait.pl",
         "SUPABASE_URL": "https://STAGING_PROJECT_REF.supabase.co",
       },
     },
     "production": {
       "name": "plant-nfc-production",
       // Needs the pampait.pl zone on this Cloudflare account (docs/deploy.md).
-      "routes": [{ "pattern": "plants.pampait.pl", "custom_domain": true }],
+      "routes": [
+        { "pattern": "plants.pampait.pl", "custom_domain": true },
+        { "pattern": "api.plants.pampait.pl", "custom_domain": true },
+      ],
       "vars": {
         "APP_ENV": "production",
+        "API_HOST": "api.plants.pampait.pl",
         "SUPABASE_URL": "https://PROD_PROJECT_REF.supabase.co",
       },
     },
