@@ -71,9 +71,9 @@ Each story lists its acceptance criteria. IDs (FR-x) are referenced in commits, 
 **FR-4 Next watering and reminders.**
 
 - Next due = last watered + interval for the current season (summer Apr–Sep, winter Oct–Mar, northern hemisphere default; hemisphere setting).
-- Daily digest notification at a user-chosen time listing due plants; no notification if none due.
+- Daily digest notification at a user-chosen time (in the user's time zone) listing due plants; no notification if none due. The server computes and sends it from the latest household data, so it never lists a plant someone already watered.
 - Notifications are per user and can be turned off per user or per plant.
-- When anyone waters a plant, pending reminders for it are cleared on all devices.
+- When anyone waters a plant, a digest already shown on other devices is replaced in place with the updated list, or with a quiet "all watered" note, without sound.
 
 **FR-5 Plant list.** Home screen lists plants sorted by due date, grouped Overdue / Today / Upcoming, filterable by room.
 
@@ -106,10 +106,10 @@ Defaults below are decided unless section 12 says otherwise. Use the latest stab
 | Local database | Drift (SQLite) | Typed queries, migrations, reactive streams for offline-first |
 | Models | freezed + json\_serializable | Immutable models, exhaustive unions |
 | NFC | nfc\_manager | NDEF read/write on iOS and Android |
-| Notifications | flutter\_local\_notifications + Firebase Cloud Messaging (data messages only) | Local scheduling; silent push triggers sync and reminder refresh |
+| Notifications | Firebase Cloud Messaging visible notifications sent by the server; flutter\_local\_notifications only to show them while the app is in the foreground | The OS displays visible notifications without running app code and replaces them in place by tag or collapse ID; silent push is unreliable when the app is idle or swiped away (ADR-0013) |
 | Backend | Supabase: Postgres, Auth, Storage. No Edge Functions; Data API disabled for clients | Managed Postgres and sign-in; RLS as defence in depth; open source, low cost |
 | API contract | OpenAPI 3.1 spec in the repo; Zod validation in the Worker; Dart client generated from the spec | One source of truth for the app–backend boundary; breaking changes caught in CI |
-| API gateway, web fallback and link hosting | Cloudflare Workers (TypeScript, Hono): versioned API at api.\<domain>/v1 plus web pages; Hyperdrive for Postgres connections; tests with Vitest | The only backend the app talks to; owns the contract so the database can change without breaking old app versions; Hono also runs on Node or Bun |
+| API gateway, web fallback and link hosting | Cloudflare Workers (TypeScript, Hono): versioned API at api.\<domain>/v1 plus web pages; Hyperdrive for Postgres connections; Durable Objects for live updates; Cron Triggers for reminder digests; tests with Vitest | The only backend the app talks to; owns the contract so the database can change without breaking old app versions; Hono also runs on Node or Bun |
 | Crash and error reporting | Sentry (mobile + Workers), PII scrubbing on | Single view across platforms |
 | CI/CD | GitHub Actions + fastlane | Automated tests, signed builds, store uploads |
 | Infrastructure as code | Supabase CLI migrations, config in repo | Reproducible environments |
@@ -130,7 +130,8 @@ Shared code lives in `core/` (design system, theming, logging, error types, resu
 
 1. UI watches a repository stream backed by Drift and renders immediately from local data.
 2. User actions write to Drift and append a row to an outbox table in the same transaction.
-3. The sync engine drains the outbox to the API (POST /v1/sync/push) with retries and exponential backoff, and pulls remote changes from GET /v1/sync/pull on silent push and with a delta query (`updated_at > last_sync`) on app start and resume.
+3. The sync engine drains the outbox to the API (POST /v1/sync/push) with retries and exponential backoff, and pulls remote changes from GET /v1/sync/pull (a delta query, `updated_at > last_sync`) on every live-update signal, on app start and resume, on reconnect, and when a tag is scanned (the card shows cached data at once, then refreshes).
+4. While the app is in the foreground it keeps one WebSocket to its household's live-update channel (`GET /v1/live`). The socket carries only "something changed" signals; data always comes through the pull. The socket closes when the app goes to the background.
 
 **API client.** The app depends only on the versioned API, through a Dart client generated from the OpenAPI spec. The Supabase SDK is used for sign-in and token refresh only. Every request sends `X-App-Version`, `X-Platform` and `X-API-Version`. A `426 Upgrade Required` response opens a blocking update screen; below the recommended version, a dismissible prompt appears. Parsing is tolerant: unknown fields and enum values are ignored, never fatal.
 
@@ -173,12 +174,19 @@ The app talks to exactly one backend: a versioned API on Cloudflare Workers. Sup
 
 - `create-invite` and `accept-invite`: generate and redeem single-use, expiring invite codes.
 - `public-plant`: given a tag token, returns the public care card fields only, or 404. Rate-limited.
-- `notify-household`: after a push containing new watering events, sends FCM data messages to other members' devices so they refresh and clear reminders.
+- `live-updates`: one Durable Object per household holds the members' foreground WebSockets (hibernation API) and broadcasts a change signal after every accepted push.
+- `reminder-digest`: a Cron Trigger every 15 minutes finds users whose digest time has arrived, computes due plants from the latest data, and sends a visible FCM notification (or none if nothing is due).
+- `digest-update`: after a push containing new watering events, re-sends the day's digest to members who already received it, with the same tag or collapse ID, so it silently replaces the one on screen.
 - `delete-account` and `export-data`: GDPR flows.
 
 The Worker reaches Postgres through Cloudflare Hyperdrive with a dedicated database role. In each transaction it sets the verified user's claims, so RLS policies still apply as defence in depth. Business logic lives in Worker code and private Postgres functions that clients cannot call. Account deletion and notifications use narrowly scoped elevated functions. Because every write passes through the Worker, no database webhooks are needed.
 
-**Change notifications.** Clients never subscribe to tables. When household data changes, the Worker sends an FCM silent push with a small versioned payload, e.g. `{"type":"changed","v":1,"cursor":"…"}`, and the app pulls through the API. Supabase Realtime is not used in MVP. If lower latency is needed later, use a Realtime Broadcast channel carrying the same payload, never table change subscriptions.
+**Change notifications** (ADR-0013). Clients never subscribe to tables, and correctness never depends on silent push.
+
+- **App open:** the household Durable Object sends a small versioned signal over the WebSocket, e.g. `{"type":"changed","v":1,"cursor":"…"}`, and the app pulls through the API.
+- **App closed:** nothing needs to reach the app. Reminders are server-sent visible notifications, computed at send time and replaced in place when plants are watered. They carry generic text only (for example "3 plants need water"), never nicknames or member names, and expire after a few hours (FCM TTL).
+- **Best effort only:** a high-priority FCM data message may also trigger a background pull, but nothing relies on it.
+- Supabase Realtime is not used.
 
 **Storage.** Plant photos in a private bucket, path `household_id/plant_id/uuid.jpg`, with RLS. Client resizes to max 1600 px and strips EXIF location before upload. The API issues short-lived signed upload and download URLs; cache on device.
 
@@ -239,7 +247,8 @@ All synced tables carry `id` (UUID v7), `household_id`, `created_at`, `updated_a
 | `tags` | token, plant\_id, written\_at, written\_by | Unique token; one active tag per plant |
 | `watering_events` | plant\_id, user\_id, watered\_at, source (scan, list, bulk) | Append-only |
 | `devices` | user\_id, platform, push\_token, last\_seen\_at | For FCM |
-| `notification_prefs` | user\_id, digest\_time, enabled, muted\_plant\_ids | Per user |
+| `notification_prefs` | user\_id, digest\_time, time\_zone, enabled, muted\_plant\_ids | Per user; the time zone is needed for server-sent digests |
+| `digest_sends` | user\_id, local\_date, sent\_at, plant\_ids, collapse\_key | Which digest each user got today, so it can be replaced in place |
 
 Derived values (last watered, next due, overdue) are computed, not stored, so they can never drift.
 
@@ -284,7 +293,7 @@ These are acceptance criteria, measured on a mid-range Android phone about three
 | Accessibility | Contrast and targets | Text contrast ≥ 4.5:1; touch targets ≥ 44 pt (iOS) and 48 dp (Android) |
 | Accessibility | Colour and motion | Status never shown by colour alone; respect reduce-motion |
 | Localisation | Strings and formats | All strings in ARB files; locale-aware dates; layouts safe for long text and RTL |
-| Battery | Background work | No polling; sync on app open, resume and push; NFC sessions only when user-initiated |
+| Battery | Background work | No polling; sync on app open, resume, scan and live-update signals; WebSocket only while the app is in the foreground; NFC sessions only when user-initiated |
 | Compatibility | OS versions | iOS 16+ and Android 8.0 (API 26)+ unless current stable Flutter requires higher (record in ADR) |
 | Scalability | Capacity without redesign | 10,000 households on the smallest paid Supabase tier; indexes on all foreign keys and `watered_at` |
 | Observability | Errors and health | Sentry on app and Workers with release tracking; uptime check on the web fallback; alert on error spikes |
@@ -337,10 +346,10 @@ Work strictly in this order; each milestone ends with a demo on real devices and
 
 1. **M0 Foundations.** Monorepo, Flutter skeleton with design tokens and theming, CI pipeline, three Supabase environments, Sentry, ADRs for the stack. Exit: CI green, app launches on both platforms.
 2. **M1 NFC spike.** Write a link to a tag; scanning opens the app on a test route on both platforms (installed, killed, locked). Domain with AASA and assetlinks live. Exit: test matrix passes; findings recorded in an ADR.
-3. **M2 Data and sync.** Schema, migrations, RLS with tests, auth, API gateway with OpenAPI contract and version enforcement, household and invites, Drift database, outbox and sync engine. Exit: two devices on different platforms share plants and waterings, including offline-then-reconnect.
+3. **M2 Data and sync.** Schema, migrations, RLS with tests, auth, API gateway with OpenAPI contract and version enforcement, household and invites, Drift database, outbox and sync engine, live updates over WebSocket (one Durable Object per household). Exit: two devices on different platforms share plants and waterings, including offline-then-reconnect.
 4. **M3 Presets.** Schema, validator, first 40 presets, offline search. Exit: search meets the 100 ms target; CI validates the file.
 5. **M4 Core UX.** Plant list, plant card, add-plant and write-tag flow, log watering with undo, edit and delete, photos. Exit: FR-1, 2, 3, 5, 6 pass; usability target ≤ 60 s met.
-6. **M5 Reminders.** Next-due logic, seasons, daily digest, push on household waterings. Exit: FR-4 passes; no reminder fires for a plant already watered by someone else.
+6. **M5 Reminders.** Next-due logic, seasons, server-sent daily digest (Cron Trigger), in-place digest updates after household waterings. Exit: FR-4 passes; no reminder lists a plant already watered by someone else, verified on real devices with the app swiped away and in battery-saving mode.
 7. **M6 Web fallback and account.** Public card page, disable toggle, export and account deletion, QR fallback. Exit: FR-8 and FR-9 pass.
 8. **M7 Hardening and release.** Full NFR audit, accessibility pass, remaining presets to 120+, store listings, privacy labels, internal then phased release. Exit: every row in section 9 is green.
 
@@ -372,6 +381,7 @@ Work strictly in this order; each milestone ends with a demo on real devices and
 - [ ] Personal use only, or public store release? This sets the M7 scope (store listings, support page, legal review).
 - [x] Domain `plants.pampait.pl` (API at `api.plants.pampait.pl`); bundle ID and application ID `pl.pampait.plantnfc` (confirmed 2026-10-23, ADR-0008). App name still provisional ("Plant NFC").
 - [x] Architecture: the app talks only to the versioned API on Cloudflare Workers, never to Supabase tables (confirmed 2026-10-26, ADR-0012).
+- [x] Live updates and reminders: foreground WebSocket through a Durable Object per household; server-sent visible digest, replaced in place; silent push never relied on (confirmed 2026-10-27, ADR-0013).
 - [ ] App languages for v1 and the default hemisphere for seasons.
 - [ ] Push provider: FCM for both platforms (default) or direct APNs for iOS.
 - [ ] Should the web fallback card be on or off by default for new households?

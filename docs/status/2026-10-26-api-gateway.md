@@ -20,4 +20,5 @@ Finish the M1 test matrix, then M2, which now includes the OpenAPI contract, JWT
 
 ## Risks
 
-- FCM silent push replaces Realtime. Its delivery delay must be measured against the 5 s sync target (ADR-0012).
+- ~~FCM silent push replaces Realtime~~ Resolved 2026-10-27 in [ADR-0013](../adr/0013-live-updates-and-reminders.md): live updates use a foreground WebSocket (Durable Object per household) and reminders are server-sent visible notifications, replaced in place. Silent push is never relied on.
+- Durable Objects are new infrastructure: check Cloudflare plan limits before M2.

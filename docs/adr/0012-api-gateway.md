@@ -1,6 +1,6 @@
 # ADR-0012: The app talks only to a versioned API on Cloudflare Workers
 
-- Status: Accepted
+- Status: Accepted; change notifications superseded by [ADR-0013](0013-live-updates-and-reminders.md) (WebSocket for live updates, server-sent visible digests instead of silent push)
 - Date: 2026-10-26
 - Decided by: product owner (updated brief, merged into AGENTS.md)
 - Supersedes: the parts of [ADR-0004](0004-backend-supabase-and-workers.md) that assume clients call Supabase directly, use Realtime, or rely on database webhooks
