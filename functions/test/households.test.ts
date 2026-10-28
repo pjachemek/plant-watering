@@ -1,7 +1,7 @@
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { sha256Hex } from "../src/lib/ids";
-import { testApp, token, VERSION_HEADERS } from "./helpers";
+import { callerAs } from "./helpers";
 
 // FR-7 end to end through the gateway, against the local database (ADR-0018).
 const ADMIN_URL = "postgres://postgres:postgres@127.0.0.1:54322/postgres";
@@ -11,7 +11,7 @@ const CAT = "0192f3c4-0000-7000-8000-0000000fc003";
 
 const admin = new Client({ connectionString: ADMIN_URL });
 admin.on("error", () => undefined);
-const call = testApp();
+const as = callerAs();
 const created: string[] = [];
 
 beforeAll(async () => {
@@ -30,20 +30,6 @@ afterAll(async () => {
   await admin.query("delete from auth.users where id in ($1, $2, $3)", [ANN, BOB, CAT]);
   await admin.end();
 });
-
-async function as(user: string, method: string, path: string, body?: unknown) {
-  const res = await call(path, {
-    method,
-    headers: {
-      ...VERSION_HEADERS,
-      Authorization: `Bearer ${await token({ sub: user })}`,
-      "Content-Type": "application/json",
-    },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-  });
-  const text = await res.text();
-  return { status: res.status, body: text ? (JSON.parse(text) as Record<string, unknown>) : {} };
-}
 
 const householdNames = async (user: string) =>
   ((await as(user, "GET", "/households")).body.households as { name: string }[]).map((h) => h.name);

@@ -66,3 +66,27 @@ export async function authHeaders(extra: Record<string, string> = {}) {
     ...extra,
   };
 }
+
+/** Calls the API as [user] (an auth.users id) and parses the JSON reply. */
+export function callerAs(call: ReturnType<typeof testApp> = testApp()) {
+  return async (
+    user: string,
+    method: string,
+    path: string,
+    body?: unknown,
+    headers: Record<string, string> = {},
+  ) => {
+    const res = await call(path, {
+      method,
+      headers: {
+        ...VERSION_HEADERS,
+        Authorization: `Bearer ${await token({ sub: user })}`,
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    const text = await res.text();
+    return { status: res.status, body: (text ? JSON.parse(text) : {}) as Record<string, unknown> };
+  };
+}
