@@ -34,9 +34,12 @@ jobs:
           cache: true
       - run: flutter --disable-analytics
       - run: flutter pub get --enforce-lockfile
-      - name: Generated code is up to date
+      - name: Generated code (API client, freezed, Riverpod, l10n) is up to date
         run: |
+          dart run swagger_parser
           dart run build_runner build --delete-conflicting-outputs
+          dart format lib/core/api/generated
+          git add --intent-to-add lib
           git diff --exit-code -- lib
       - run: dart format --output=none --set-exit-if-changed lib test tool
       - run: flutter analyze --fatal-infos --fatal-warnings
@@ -86,10 +89,36 @@ jobs:
           cache-dependency-path: functions/package-lock.json
       - run: npm ci
       - run: npm run format:check
+      - run: npm run lint:api
+      - name: Generated contract code is up to date
+        run: |
+          npm run generate:api
+          git add --intent-to-add src/api/generated
+          git diff --exit-code -- src/api/generated
       - run: npm run types:check
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:coverage
+
+  api-contract:
+    name: API contract (no breaking changes)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Compare with the base branch (ADR-0015)
+        env:
+          # Passed through env, not interpolated into the script.
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if ! git show "origin/${BASE_REF}:functions/openapi.yaml" > /tmp/base.yaml 2>/dev/null; then
+            echo "No spec on the base branch yet: nothing to compare."
+            exit 0
+          fi
+          docker run --rm -v /tmp:/base:ro -v "$PWD/functions:/head:ro" \
+            tufin/oasdiff:v1.34.1 breaking /base/base.yaml /head/openapi.yaml --fail-on ERR
 
   database:
     name: Database (migrations on fresh DB, pgTAP tests)
