@@ -1,7 +1,7 @@
 // Cloudflare Workers config: the versioned API on API_HOST and the web pages on
 // every other host, from one Worker (ADR-0004, ADR-0012).
 // Secrets (SENTRY_DSN) are set with `wrangler secret put`, never committed.
-// Postgres is reached through a Hyperdrive binding, added in M2. See ../.env.example.
+// Postgres is reached through the HYPERDRIVE binding (ADR-0017). See ../.env.example.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "plant-nfc-dev",
@@ -33,7 +33,7 @@
   ],
   "vars": {
     "APP_ENV": "dev",
-    // Version policy until it moves to the client_versions table (M2.4).
+    // Version policy fallback when the database can't be read (ADR-0017).
     "MIN_APP_VERSION": "0.1.0",
     "RECOMMENDED_APP_VERSION": "0.1.0",
     // *.localhost resolves to this machine: curl http://api.localhost:8787/health
@@ -45,6 +45,9 @@
     // staging exists. Local `wrangler dev` stays on the local Supabase stack.
     "development": {
       "name": "plant-nfc-development",
+      // plant-nfc-dev: the Supabase dev project as plantnfc_api through the
+      // shared session pooler (docs/environments.md). Not inherited.
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "63de0c5bfe174cada9afa12c669d4f43" }],
       "routes": [{ "pattern": "api-dev.plants.pampait.pl", "custom_domain": true }],
       "ratelimits": [
         {

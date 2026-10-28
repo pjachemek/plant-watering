@@ -16,6 +16,7 @@ The web host (`plants.pampait.pl`: app-link files, tag pages) is served by produ
 - URL: `https://utqhpnnkbiafgpnsliuz.supabase.co`
 - Signing key: asymmetric ES256 (checked 2026-10-28; the Worker refuses HS256).
 - Issuer the Worker expects: `https://utqhpnnkbiafgpnsliuz.supabase.co/auth/v1`
+- Hyperdrive: `plant-nfc-dev` (`63de0c5bfe174cada9afa12c669d4f43`), user `plantnfc_api.utqhpnnkbiafgpnsliuz` via the shared session pooler `aws-0-eu-west-1.pooler.supabase.com:5432` (IPv4; the direct host is IPv6-only). Bound in the `development` environment.
 - Data API: must be **off** for clients, as in `supabase/config.toml` (ADR-0012). Turn it off in the dashboard under Project Settings → Data API; hosted projects don't take `config.toml`.
 
 ## Applying the schema (product owner, once per project)
