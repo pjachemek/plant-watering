@@ -2,6 +2,7 @@ import { asUser, rows, withDb } from "../../db/client";
 import type { SyncPullData, SyncPushData } from "../generated/types.gen";
 import { problem } from "../problem";
 import { respond, type OperationHandler } from "../v1";
+import { signalChanged } from "./live";
 
 /**
  * POST /v1/sync/push (AGENTS.md section 5). One database call applies the
@@ -15,14 +16,16 @@ export const syncPush: OperationHandler = async (c) => {
 
   const [row] = await withDb(c.env, (db) =>
     asUser(db, c.get("user"), (tx) =>
-      rows<{ results: unknown[] | null }>(tx, "select sync.push($1, $2, $3::jsonb) as results", [
-        body.household_id,
-        idempotencyKey,
-        JSON.stringify(body.changes),
-      ]),
+      rows<{ results: { status: string }[] | null }>(
+        tx,
+        "select sync.push($1, $2, $3::jsonb) as results",
+        [body.household_id, idempotencyKey, JSON.stringify(body.changes)],
+      ),
     ),
   );
   if (!row?.results) return problem(c, 404, "not_found", "Not found");
+  // Other open apps pull within a second (FR-2, ADR-0020).
+  if (row.results.some((r) => r.status === "applied")) signalChanged(c, body.household_id);
   return respond(c, { results: row.results });
 };
 

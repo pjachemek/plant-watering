@@ -4,6 +4,7 @@ import type { AcceptInviteRequest, CreateInviteData } from "../generated/types.g
 import { problem } from "../problem";
 import { respond, type OperationHandler } from "../v1";
 import { readHousehold } from "./households";
+import { signalChanged } from "./live";
 
 /** 12 base62 characters: about 71 bits, single use, 7 days, rate-limited. */
 const CODE_LENGTH = 12;
@@ -64,5 +65,6 @@ export const acceptInvite: OperationHandler = async (c) => {
   });
 
   if (!household) return problem(c, 404, "not_found", "This invite is not valid");
+  signalChanged(c, household.id as string);
   return respond(c, household);
 };

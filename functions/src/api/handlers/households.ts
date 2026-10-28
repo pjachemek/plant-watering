@@ -3,6 +3,7 @@ import { uuidv7 } from "../../lib/ids";
 import type { CreateHouseholdRequest, LeaveHouseholdData } from "../generated/types.gen";
 import { problem } from "../problem";
 import { respond, type OperationHandler } from "../v1";
+import { signalLeft } from "./live";
 
 const HOUSEHOLD_COLUMNS =
   "id, name, public_cards_enabled, hemisphere, created_at, updated_at, deleted_at";
@@ -71,6 +72,7 @@ export const leaveHousehold: OperationHandler = async (c) => {
   switch (result?.status) {
     case "left":
     case "deleted":
+      signalLeft(c, household_id, c.get("user").id);
       return c.body(null, 204);
     case "confirmation_required":
       return problem(

@@ -8,6 +8,7 @@ import { DatabaseUnavailable } from "../db/client";
 import { createDbVersionPolicy } from "../db/version-policy";
 import { createHousehold, leaveHousehold, listHouseholds } from "./handlers/households";
 import { acceptInvite, createInvite } from "./handlers/invites";
+import { openLiveUpdates } from "./handlers/live";
 import { syncPull, syncPush } from "./handlers/sync";
 import { createV1, type V1Options } from "./v1";
 
@@ -42,6 +43,7 @@ export function createApiApp(options: V1Options = {}): Hono<{ Bindings: Bindings
         acceptInvite,
         syncPush,
         syncPull,
+        openLiveUpdates,
         ...options.handlers,
       },
     }),
