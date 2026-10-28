@@ -1,6 +1,6 @@
 # ADR-0010: NFC tag reading, writing and link dispatch (M1)
 
-- Status: Accepted for the spike. Findings from real devices are added in the "Device findings" section before M1 closes.
+- Status: Accepted. Device findings and the decisions taken from them are recorded below (2026-10-28).
 - Date: 2026-10-26
 - Related: FR-1, FR-3 (write flow), AGENTS.md section 7; NFR Security, Battery, Performance
 
@@ -50,9 +50,40 @@ The cold starts took 8–9 s on the emulator with software graphics and a debug 
 2. Check whether the device's NFC dispatcher falls back to `VIEW` for `https` URIs. If it does, the verified App Link wins without a chooser, and we could drop the `NDEF_DISCOVERED` filter.
 3. Use the in-app "Scan" button (foreground reader mode), which never involves the dispatcher.
 
-## Device findings
+## Device findings (2026-10-28)
 
-_To fill in from the [NFC test matrix](../testing/nfc-test-matrix.md) before M1 closes._
+Tested on a **Pixel 9 Pro, Android 17 (build CP3A.261005.005)**, debug build signed with the development key. `plants.pampait.pl` was live and App Links showed `verified`. Evidence comes from logcat (`NfcDispatcher`, `NfcService`, activity manager).
+
+| Scenario | Result |
+| --- | --- |
+| Write a blank sticker, read it back, open the plant link | ✅ |
+| Overwrite our own link (confirmation shown first) | ✅ |
+| Write with a shaky hand | Once showed "didn't save the link correctly"; a retry worked. The cause can't be proven (the log had rolled over). Mitigated: read-back is retried once and the message asks the user to hold still |
+| **Scan with the app closed or in the background** | Android 17's NFC service logs `tryNdef: matched Web link - prompting user` and shows a **notification the user must tap**; it then sends the link as a normal `VIEW` intent, and the verified App Link opens our app with **no chooser**. Our `NDEF_DISCOVERED` filter isn't used for web links |
+| **Scan with the app open** (after the change below) | Delivered straight to the app as `NDEF_DISCOVERED`: **no prompt**, tag screen opens |
+| Phone left resting on the sticker after a write | Before the fix: Android re-detected the sticker and showed its prompt. After the fix: nothing happens ✅ |
+| Leave the NFC screen and return (Home, then reopen), then write | ✅ |
+| Link opened from outside the app while it runs | Before the fix: a **second copy of the app** was created in the NFC system task. After the fix: the running copy is reused ✅ |
+| Cold start, app closed | 1.3–1.6 s to the first screen (debug build) |
+
+**Answer to the open risk above:** no Chrome chooser on this device. Instead, Android 17 asks for **one confirmation tap** before opening any web link from a sticker. This is an OS rule and can't be avoided without an Android Application Record, which the brief rules out.
+
+### Decisions taken from the findings (product owner, 2026-10-28)
+
+1. **Accept one tap when the app isn't open.** FR-1's "no extra taps" holds while the app is open; with the app closed, Android's prompt adds one tap.
+2. **Foreground dispatch filtered to our domain** (`MainActivity`). While the app is on screen, Android hands stickers with `https://plants.pampait.pl/p/…` straight to the app. Every other tag, and phone-as-card features such as contactless payment, keep working through Android. The pending intent targets `MainActivity` explicitly (it must be mutable so Android can attach the tag). It adds no polling, so it's consistent with the battery NFR's intent.
+3. **Android drops the foreground filter when reader mode ends.** So Dart switches it off while a write or read session is open and back on when the session closes, through the `pl.pampait.plantnfc/tag_dispatch` channel.
+4. **NFC sessions last as long as the screen that uses them.** Stickers seen while no operation is pending are ignored, so a phone still on a sticker after a write is never handed back to Android.
+5. **`launchMode="singleTask"`** (kept with `taskAffinity=""`): links opened from outside reuse the running app instead of starting a second copy with its own Flutter engine.
+6. **Write verification re-reads once** before reporting a mismatch.
+
+### Not covered on devices yet
+
+These checklist rows still need running before release (the [test matrix](../testing/nfc-test-matrix.md) is the checklist):
+
+- A **second Android phone from another manufacturer** (for example Samsung).
+- App swiped away (killed), phone locked, app not installed (web fallback page), airplane mode, an on-metal sticker, a foreign-data sticker, NFC turned off.
+- Timings on a release build (NFR: 1.5 s warm and 2.5 s cold from tag to card).
 
 ## Consequences
 

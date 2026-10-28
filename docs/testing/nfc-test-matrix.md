@@ -44,3 +44,11 @@ Record each result as ✅ / ❌ with a note: the phone, the Android version, and
 ## After the run
 
 Add the results and the decision on the chooser question to "Device findings" in [ADR-0010](../adr/0010-nfc-read-write.md).
+
+## Results
+
+| Date | Phone | Rows run | Outcome |
+| --- | --- | --- | --- |
+| 2026-10-28 | Pixel 9 Pro, Android 17 | 1, 2, 4 (shaky hand), 6, 7, 12, plus "leave and return during a write" | Pass after fixes. Android 17 asks one confirmation tap for sticker links when the app isn't open; no Chrome chooser. Details in [ADR-0010](../adr/0010-nfc-read-write.md#device-findings-2026-10-28) |
+
+Still to run: a second manufacturer's phone, and rows 3, 5, 8, 9, 10, 11, 13, 14 and 15 (timing on a release build).
