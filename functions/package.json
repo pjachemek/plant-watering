@@ -19,7 +19,8 @@
     "types": "wrangler types",
     "types:check": "wrangler types --check",
     "generate:api": "openapi-ts && node scripts/generate-operations.mjs && prettier --write src/api/generated",
-    "lint:api": "redocly lint"
+    "lint:api": "redocly lint",
+    "deploy:development": "wrangler deploy --env development"
   },
   "dependencies": {
     "@sentry/cloudflare": "11.8.0",
