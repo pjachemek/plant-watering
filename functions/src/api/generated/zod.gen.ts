@@ -160,12 +160,22 @@ export const zSyncOp = z.enum(["upsert", "delete"]);
  * (`plant`, `tag`, `watering_event` or `household`); it is omitted for
  * `delete`.
  *
+ * For `upsert` of a household, plant or tag, `fields` lists the field
+ * names this change sets. Listed fields take the value in the patch, or
+ * null when absent; fields not listed are left unchanged. This keeps
+ * "clear this field" distinct from "don't touch it" for typed clients
+ * that omit nulls. Watering events are created whole and ignore `fields`.
+ *
  */
 export const zPushChange = z.object({
   change_id: zUuid,
   entity: zSyncEntity,
   op: zSyncOp,
   id: zUuid,
+  fields: z
+    .array(z.string().regex(/^[a-z_]{1,40}$/))
+    .max(20)
+    .optional(),
   household: zHouseholdFields.optional(),
   plant: zPlantFields.optional(),
   tag: zTagFields.optional(),

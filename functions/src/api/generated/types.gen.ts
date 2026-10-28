@@ -176,6 +176,12 @@ export type SyncOp = "upsert" | "delete";
  * (`plant`, `tag`, `watering_event` or `household`); it is omitted for
  * `delete`.
  *
+ * For `upsert` of a household, plant or tag, `fields` lists the field
+ * names this change sets. Listed fields take the value in the patch, or
+ * null when absent; fields not listed are left unchanged. This keeps
+ * "clear this field" distinct from "don't touch it" for typed clients
+ * that omit nulls. Watering events are created whole and ignore `fields`.
+ *
  */
 export type PushChange = {
   change_id: Uuid;
@@ -185,6 +191,7 @@ export type PushChange = {
    * The row id (client-generated UUID v7 for new rows).
    */
   id: Uuid;
+  fields?: Array<string>;
   household?: HouseholdFields;
   plant?: PlantFields;
   tag?: TagFields;

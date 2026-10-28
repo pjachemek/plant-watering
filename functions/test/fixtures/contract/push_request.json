@@ -1,0 +1,30 @@
+{
+  "household_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e60",
+  "changes": [
+    {
+      "change_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e61",
+      "entity": "plant",
+      "op": "upsert",
+      "id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e62",
+      "fields": ["nickname", "preset_id", "room"],
+      "plant": { "nickname": "Monty", "preset_id": "monstera" }
+    },
+    {
+      "change_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e63",
+      "entity": "watering_event",
+      "op": "upsert",
+      "id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e64",
+      "watering_event": {
+        "plant_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e62",
+        "watered_at": "2026-10-28T08:15:00.000Z",
+        "source": "scan"
+      }
+    },
+    {
+      "change_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e65",
+      "entity": "watering_event",
+      "op": "delete",
+      "id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e64"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "cursor": "748",
+  "household": {
+    "id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e60",
+    "name": "Home",
+    "public_cards_enabled": false,
+    "hemisphere": "north",
+    "created_at": "2026-10-28T08:00:00.000Z",
+    "updated_at": "2026-10-28T08:00:00.000Z"
+  },
+  "members": [
+    {
+      "id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e70",
+      "household_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e60",
+      "user_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e71",
+      "display_name": "Ann",
+      "joined_at": "2026-10-28T08:00:00.000Z",
+      "updated_at": "2026-10-28T08:00:00.000Z"
+    }
+  ],
+  "plants": [
+    {
+      "id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e62",
+      "household_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e60",
+      "nickname": "Monty",
+      "preset_id": "monstera",
+      "preset_version": 1,
+      "interval_summer_days": 7,
+      "method": "top",
+      "created_at": "2026-10-28T08:01:00.000Z",
+      "updated_at": "2026-10-28T08:01:00.000Z"
+    }
+  ],
+  "tags": [
+    {
+      "id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e80",
+      "household_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e60",
+      "token": "AbCdEfGhIjKlMnOpQrStUv",
+      "plant_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e62",
+      "written_at": "2026-10-28T08:02:00.000Z",
+      "updated_at": "2026-10-28T08:02:00.000Z"
+    }
+  ],
+  "watering_events": [
+    {
+      "id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e64",
+      "household_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e60",
+      "plant_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e62",
+      "user_id": "0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e71",
+      "watered_at": "2026-10-28T08:15:00.000Z",
+      "source": "scan",
+      "created_at": "2026-10-28T08:15:01.000Z"
+    }
+  ]
+}
