@@ -6,6 +6,8 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - lib/l10n/app_localizations*.dart
+    # Generated from functions/openapi.yaml (ADR-0015); CI checks it is current.
+    - lib/core/api/generated/**
     - build/**
     - android/**
     - ios/**

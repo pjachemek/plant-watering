@@ -1,0 +1,23 @@
+# Generates the Dart API client from the contract (functions/openapi.yaml,
+# ADR-0015). Regenerate with:
+#   dart run swagger_parser && dart run build_runner build --delete-conflicting-outputs
+# CI fails if the generated files are out of date.
+swagger_parser:
+  schema_path: ../functions/openapi.yaml
+  output_directory: lib/core/api/generated
+  name: plant_api
+  language: dart
+  json_serializer: freezed
+  # freezed 3+ class syntax (abstract class ... with _$...).
+  use_freezed3: true
+  root_client: true
+  root_client_name: PlantApiClient
+  put_clients_in_folder: true
+  # Unknown enum values from newer servers must never break parsing (section 5).
+  unknown_enum_value: true
+  enums_to_json: true
+  mark_files_as_generated: true
+  original_http_response: false
+  # The /live WebSocket is not a REST call; the app handles it separately.
+  exclude_tags:
+    - live

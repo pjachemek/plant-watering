@@ -1,0 +1,8 @@
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # Absent optional values are omitted, never sent as null: the API
+          # contract treats null and absent differently (ADR-0015).
+          include_if_null: false
