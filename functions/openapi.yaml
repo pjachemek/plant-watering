@@ -1,0 +1,1109 @@
+openapi: 3.1.0
+info:
+  title: Plant NFC API
+  version: 1.0.0
+  summary: The only backend the Plant NFC app talks to (AGENTS.md section 6, ADR-0012).
+  description: |
+    Versioning: the major version is in the URL. Changes within v1 are additive
+    only; CI blocks breaking changes (ADR-0015). Clients must ignore unknown
+    fields and unknown enum values.
+
+    Every request sends `X-App-Version`, `X-Platform` and `X-API-Version`.
+    Requests from app versions below the minimum get `426 Upgrade Required`.
+
+    Errors use RFC 9457 problem details (`application/problem+json`). `type` is
+    a stable code clients can switch on; error bodies never contain user data.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: https://api.plants.pampait.pl/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: config
+    description: Version policy and feature flags.
+  - name: sync
+    description: Outbox push and delta pull for the offline-first app.
+  - name: households
+    description: Creating, listing and leaving households (FR-7).
+  - name: invites
+    description: Single-use invite codes (FR-7).
+  - name: tags
+    description: Resolving scanned NFC tags (FR-1).
+  - name: photos
+    description: Signed URLs for plant photos.
+  - name: account
+    description: Export and deletion (FR-9, GDPR).
+  - name: live
+    description: Live "something changed" signals (ADR-0013).
+
+paths:
+  /config:
+    get:
+      operationId: getConfig
+      tags: [config]
+      summary: App version policy and feature flags. Callable before sign-in.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+      responses:
+        "200":
+          description: Config for the calling platform.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /sync/push:
+    post:
+      operationId: syncPush
+      tags: [sync]
+      summary: Apply queued changes from the outbox. Safe to retry.
+      description: |
+        Each change carries a client-generated UUID v7 id. A retried request
+        with the same `Idempotency-Key` returns the original results; a change
+        already applied reports `duplicate`. Plant and tag patches are applied
+        per field, last write wins in server arrival order (AGENTS.md section 5).
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushRequest"
+      responses:
+        "200":
+          description: One result per change, in request order.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /sync/pull:
+    get:
+      operationId: syncPull
+      tags: [sync]
+      summary: Everything in a household that changed since the cursor.
+      description: |
+        Without a cursor, returns the whole household. The returned cursor is
+        opaque; send it back unchanged next time (ADR-0014). Rows may repeat
+        across pulls, so clients apply them idempotently.
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+        - name: household_id
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Uuid"
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Cursor"
+      responses:
+        "200":
+          description: Changed rows, soft-deleted rows included.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /households:
+    get:
+      operationId: listHouseholds
+      tags: [households]
+      summary: Households the caller belongs to (for example after a reinstall).
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+      responses:
+        "200":
+          description: The caller's households.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [households]
+                properties:
+                  households:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Household"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createHousehold
+      tags: [households]
+      summary: Create a household with the caller as its first member (FR-7).
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHouseholdRequest"
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Household"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /households/{household_id}/leave:
+    post:
+      operationId: leaveHousehold
+      tags: [households]
+      summary: Leave a household. The last member must confirm, and the household is deleted (FR-7).
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+        - $ref: "#/components/parameters/HouseholdIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirm_delete_household]
+              properties:
+                confirm_delete_household:
+                  type: boolean
+                  description: Must be true when the caller is the last member.
+      responses:
+        "204":
+          description: Left the household.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /invites:
+    post:
+      operationId: createInvite
+      tags: [invites]
+      summary: Create a single-use invite that expires in 7 days.
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [household_id]
+              properties:
+                household_id:
+                  $ref: "#/components/schemas/Uuid"
+      responses:
+        "201":
+          description: The code is shown once; only its hash is stored.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invite"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /invites/accept:
+    post:
+      operationId: acceptInvite
+      tags: [invites]
+      summary: Join a household with an invite code.
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptInviteRequest"
+      responses:
+        "200":
+          description: Joined.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Household"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Unknown, used or expired code (indistinguishable on purpose).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /tags/{token}:
+    get:
+      operationId: resolveTag
+      tags: [tags]
+      summary: Resolve a scanned tag token within the caller's households (FR-1).
+      description: |
+        404 for unknown tokens and for tokens of other households alike, so a
+        tag never reveals another household's data.
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+        - name: token
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/TagToken"
+      responses:
+        "200":
+          description: The tag and its plant, if linked.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResolvedTag"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /photos/upload-url:
+    post:
+      operationId: createPhotoUploadUrl
+      tags: [photos]
+      summary: A short-lived signed URL for uploading one plant photo.
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [household_id, plant_id, content_type]
+              properties:
+                household_id:
+                  $ref: "#/components/schemas/Uuid"
+                plant_id:
+                  $ref: "#/components/schemas/Uuid"
+                content_type:
+                  type: string
+                  enum: [image/jpeg]
+      responses:
+        "200":
+          description: Upload with PUT before `expires_at`, then save `photo_path` on the plant.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PhotoUploadUrl"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /photos/download-url:
+    get:
+      operationId: getPhotoDownloadUrl
+      tags: [photos]
+      summary: A short-lived signed URL for one plant photo.
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+        - name: photo_path
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/PhotoPath"
+      responses:
+        "200":
+          description: The signed URL.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignedUrl"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /account/export:
+    get:
+      operationId: exportAccount
+      tags: [account]
+      summary: All of the caller's data as JSON (FR-9, GDPR).
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+      responses:
+        "200":
+          description: The export.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountExport"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /account:
+    delete:
+      operationId: deleteAccount
+      tags: [account]
+      summary: Delete the caller's account (FR-9). Completes within 30 days.
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+      responses:
+        "202":
+          description: Deletion accepted; sign-in is revoked immediately.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /live:
+    get:
+      operationId: openLiveUpdates
+      tags: [live]
+      summary: WebSocket for "something changed" signals while the app is open (ADR-0013).
+      description: |
+        Upgrade to a WebSocket. The server sends `LiveMessage` JSON text
+        frames; the client then pulls through `/sync/pull`. The socket never
+        carries household data. Not part of the generated clients.
+      x-codegen-skip: true
+      parameters:
+        - $ref: "#/components/parameters/AppVersion"
+        - $ref: "#/components/parameters/Platform"
+        - $ref: "#/components/parameters/ApiVersion"
+        - name: household_id
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Uuid"
+        - name: Upgrade
+          in: header
+          required: true
+          schema:
+            type: string
+            const: websocket
+      responses:
+        "101":
+          description: Switched to WebSocket. Each text frame is one `LiveMessage`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveMessage"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "426":
+          $ref: "#/components/responses/UpgradeRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/Error"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase Auth access token, verified against Supabase JWKS.
+
+  parameters:
+    AppVersion:
+      name: X-App-Version
+      in: header
+      required: true
+      schema:
+        $ref: "#/components/schemas/SemVer"
+    Platform:
+      name: X-Platform
+      in: header
+      required: true
+      schema:
+        $ref: "#/components/schemas/Platform"
+    ApiVersion:
+      name: X-API-Version
+      in: header
+      required: true
+      schema:
+        type: string
+        const: "1"
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        $ref: "#/components/schemas/Uuid"
+    HouseholdIdPath:
+      name: household_id
+      in: path
+      required: true
+      schema:
+        $ref: "#/components/schemas/Uuid"
+
+  responses:
+    BadRequest:
+      description: The request doesn't match this contract.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Unauthorized:
+      description: Missing, expired or invalid access token.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: Not found, or not visible to the caller (indistinguishable on purpose).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Conflict:
+      description: The request conflicts with the current state.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    UpgradeRequired:
+      description: The app version is below the minimum; the app shows the update screen (FR-10).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    TooManyRequests:
+      description: Rate limit reached.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 0
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Error:
+      description: Unexpected error.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+    Timestamp:
+      type: string
+      format: date-time
+      description: UTC, RFC 3339.
+    SemVer:
+      type: string
+      pattern: '^\d+\.\d+\.\d+$'
+      maxLength: 32
+    Cursor:
+      type: string
+      pattern: '^\d{1,20}$'
+      description: Opaque sync cursor (ADR-0014).
+    TagToken:
+      type: string
+      pattern: "^[0-9A-Za-z]{22}$"
+    PhotoPath:
+      type: string
+      maxLength: 255
+      pattern: '^[0-9a-f-]{36}/[0-9a-f-]{36}/[0-9a-f-]{36}\.jpg$'
+    Platform:
+      type: string
+      enum: [android, ios]
+    Hemisphere:
+      type: string
+      enum: [north, south]
+    WateringMethod:
+      type: string
+      enum: [top, bottom, soak, mist]
+    WateringAmount:
+      type: string
+      enum: [small, medium, large]
+    WateringSource:
+      type: string
+      enum: [scan, list, bulk]
+
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          description: Stable machine-readable code, for example `not_found`.
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+          description: Never contains user data.
+        errors:
+          type: array
+          description: For 400 responses, where the request breaks the contract. Never echoes submitted values.
+          items:
+            $ref: "#/components/schemas/ValidationIssue"
+
+    ValidationIssue:
+      type: object
+      required: [location, pointer, code]
+      properties:
+        location:
+          type: string
+          enum: [header, path, query, body]
+        pointer:
+          type: string
+          description: Dotted path to the offending field, for example `changes.0.plant.nickname`.
+        code:
+          type: string
+          description: Validator issue code, for example `too_small`.
+
+    Config:
+      type: object
+      required: [platform, min_version, recommended_version, api_version]
+      properties:
+        platform:
+          $ref: "#/components/schemas/Platform"
+        min_version:
+          $ref: "#/components/schemas/SemVer"
+        recommended_version:
+          $ref: "#/components/schemas/SemVer"
+        api_version:
+          type: string
+          description: The newest API major version, for example "1".
+        features:
+          type: object
+          description: Feature flags (AGENTS.md section 10).
+          additionalProperties:
+            type: boolean
+
+    Household:
+      type: object
+      required: [id, name, public_cards_enabled, hemisphere, created_at, updated_at]
+      properties:
+        id:
+          $ref: "#/components/schemas/Uuid"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        public_cards_enabled:
+          type: boolean
+        hemisphere:
+          $ref: "#/components/schemas/Hemisphere"
+        created_at:
+          $ref: "#/components/schemas/Timestamp"
+        updated_at:
+          $ref: "#/components/schemas/Timestamp"
+        deleted_at:
+          oneOf:
+            - $ref: "#/components/schemas/Timestamp"
+            - type: "null"
+
+    Member:
+      type: object
+      required: [id, household_id, user_id, display_name, joined_at, updated_at]
+      properties:
+        id:
+          $ref: "#/components/schemas/Uuid"
+        household_id:
+          $ref: "#/components/schemas/Uuid"
+        user_id:
+          $ref: "#/components/schemas/Uuid"
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        joined_at:
+          $ref: "#/components/schemas/Timestamp"
+        updated_at:
+          $ref: "#/components/schemas/Timestamp"
+        deleted_at:
+          oneOf:
+            - $ref: "#/components/schemas/Timestamp"
+            - type: "null"
+
+    PlantFields:
+      type: object
+      description: Plant fields a client may set. In a patch, only present fields change.
+      properties:
+        nickname:
+          type: string
+          minLength: 1
+          maxLength: 60
+        preset_id:
+          type: [string, "null"]
+          pattern: "^[a-z0-9-]{1,64}$"
+        preset_version:
+          type: [integer, "null"]
+          minimum: 1
+        room:
+          type: [string, "null"]
+          maxLength: 40
+        photo_path:
+          oneOf:
+            - $ref: "#/components/schemas/PhotoPath"
+            - type: "null"
+        interval_summer_days:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 60
+        interval_winter_days:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 60
+        amount:
+          oneOf:
+            - $ref: "#/components/schemas/WateringAmount"
+            - type: "null"
+        method:
+          oneOf:
+            - $ref: "#/components/schemas/WateringMethod"
+            - type: "null"
+        notes:
+          type: [string, "null"]
+          maxLength: 500
+
+    Plant:
+      allOf:
+        - $ref: "#/components/schemas/PlantFields"
+        - type: object
+          required: [id, household_id, nickname, created_at, updated_at]
+          properties:
+            id:
+              $ref: "#/components/schemas/Uuid"
+            household_id:
+              $ref: "#/components/schemas/Uuid"
+            created_at:
+              $ref: "#/components/schemas/Timestamp"
+            updated_at:
+              $ref: "#/components/schemas/Timestamp"
+            deleted_at:
+              oneOf:
+                - $ref: "#/components/schemas/Timestamp"
+                - type: "null"
+
+    TagFields:
+      type: object
+      properties:
+        token:
+          $ref: "#/components/schemas/TagToken"
+        plant_id:
+          oneOf:
+            - $ref: "#/components/schemas/Uuid"
+            - type: "null"
+        written_at:
+          oneOf:
+            - $ref: "#/components/schemas/Timestamp"
+            - type: "null"
+
+    Tag:
+      allOf:
+        - $ref: "#/components/schemas/TagFields"
+        - type: object
+          required: [id, household_id, token, updated_at]
+          properties:
+            id:
+              $ref: "#/components/schemas/Uuid"
+            household_id:
+              $ref: "#/components/schemas/Uuid"
+            written_by:
+              oneOf:
+                - $ref: "#/components/schemas/Uuid"
+                - type: "null"
+            updated_at:
+              $ref: "#/components/schemas/Timestamp"
+            deleted_at:
+              oneOf:
+                - $ref: "#/components/schemas/Timestamp"
+                - type: "null"
+
+    WateringEventFields:
+      type: object
+      required: [plant_id, watered_at, source]
+      properties:
+        plant_id:
+          $ref: "#/components/schemas/Uuid"
+        watered_at:
+          $ref: "#/components/schemas/Timestamp"
+        source:
+          $ref: "#/components/schemas/WateringSource"
+
+    WateringEvent:
+      allOf:
+        - $ref: "#/components/schemas/WateringEventFields"
+        - type: object
+          required: [id, household_id, created_at]
+          properties:
+            id:
+              $ref: "#/components/schemas/Uuid"
+            household_id:
+              $ref: "#/components/schemas/Uuid"
+            user_id:
+              description: Null after the author deleted their account.
+              oneOf:
+                - $ref: "#/components/schemas/Uuid"
+                - type: "null"
+            created_at:
+              $ref: "#/components/schemas/Timestamp"
+            deleted_at:
+              description: Set when the watering was undone.
+              oneOf:
+                - $ref: "#/components/schemas/Timestamp"
+                - type: "null"
+
+    HouseholdFields:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        public_cards_enabled:
+          type: boolean
+        hemisphere:
+          $ref: "#/components/schemas/Hemisphere"
+
+    SyncEntity:
+      type: string
+      enum: [household, plant, tag, watering_event]
+    SyncOp:
+      type: string
+      enum: [upsert, delete]
+      description: |
+        `upsert` creates or patches. `delete` soft-deletes; for a watering
+        event it is the undo (AGENTS.md section 5). Households can't be deleted
+        through sync.
+
+    PushChange:
+      type: object
+      description: |
+        One change. Exactly the patch matching `entity` must be present
+        (`plant`, `tag`, `watering_event` or `household`); it is omitted for
+        `delete`.
+      required: [change_id, entity, op, id]
+      properties:
+        change_id:
+          $ref: "#/components/schemas/Uuid"
+        entity:
+          $ref: "#/components/schemas/SyncEntity"
+        op:
+          $ref: "#/components/schemas/SyncOp"
+        id:
+          description: The row id (client-generated UUID v7 for new rows).
+          allOf:
+            - $ref: "#/components/schemas/Uuid"
+        household:
+          $ref: "#/components/schemas/HouseholdFields"
+        plant:
+          $ref: "#/components/schemas/PlantFields"
+        tag:
+          $ref: "#/components/schemas/TagFields"
+        watering_event:
+          $ref: "#/components/schemas/WateringEventFields"
+
+    PushRequest:
+      type: object
+      required: [household_id, changes]
+      properties:
+        household_id:
+          $ref: "#/components/schemas/Uuid"
+        changes:
+          type: array
+          minItems: 1
+          maxItems: 500
+          items:
+            $ref: "#/components/schemas/PushChange"
+
+    PushResult:
+      type: object
+      required: [change_id, status]
+      properties:
+        change_id:
+          $ref: "#/components/schemas/Uuid"
+        status:
+          type: string
+          enum: [applied, duplicate, rejected]
+        problem:
+          description: Why the change was rejected.
+          allOf:
+            - $ref: "#/components/schemas/Problem"
+
+    PushResponse:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/PushResult"
+
+    PullResponse:
+      type: object
+      required: [cursor, household, members, plants, tags, watering_events]
+      properties:
+        cursor:
+          $ref: "#/components/schemas/Cursor"
+        household:
+          $ref: "#/components/schemas/Household"
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/Member"
+        plants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Plant"
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+        watering_events:
+          type: array
+          items:
+            $ref: "#/components/schemas/WateringEvent"
+
+    CreateHouseholdRequest:
+      type: object
+      required: [name, display_name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        hemisphere:
+          $ref: "#/components/schemas/Hemisphere"
+
+    Invite:
+      type: object
+      required: [code, url, expires_at]
+      properties:
+        code:
+          type: string
+          pattern: "^[0-9A-Za-z]{10,32}$"
+        url:
+          type: string
+          format: uri
+        expires_at:
+          $ref: "#/components/schemas/Timestamp"
+
+    AcceptInviteRequest:
+      type: object
+      required: [code, display_name]
+      properties:
+        code:
+          type: string
+          pattern: "^[0-9A-Za-z]{10,32}$"
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 60
+
+    ResolvedTag:
+      type: object
+      required: [tag]
+      properties:
+        tag:
+          $ref: "#/components/schemas/Tag"
+        plant:
+          description: The linked plant; absent when the tag is unlinked.
+          allOf:
+            - $ref: "#/components/schemas/Plant"
+
+    SignedUrl:
+      type: object
+      required: [url, expires_at]
+      properties:
+        url:
+          type: string
+          format: uri
+        expires_at:
+          $ref: "#/components/schemas/Timestamp"
+
+    PhotoUploadUrl:
+      type: object
+      required: [upload_url, photo_path, expires_at]
+      properties:
+        upload_url:
+          type: string
+          format: uri
+        photo_path:
+          $ref: "#/components/schemas/PhotoPath"
+        expires_at:
+          $ref: "#/components/schemas/Timestamp"
+
+    AccountExport:
+      type: object
+      required: [exported_at, user_id, households, plants, tags, watering_events]
+      properties:
+        exported_at:
+          $ref: "#/components/schemas/Timestamp"
+        user_id:
+          $ref: "#/components/schemas/Uuid"
+        households:
+          type: array
+          items:
+            $ref: "#/components/schemas/Household"
+        plants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Plant"
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+        watering_events:
+          type: array
+          items:
+            $ref: "#/components/schemas/WateringEvent"
+
+    LiveMessage:
+      type: object
+      description: Sent over the `/live` WebSocket (ADR-0013).
+      required: [type, v]
+      properties:
+        type:
+          type: string
+          description: Currently `changed`; clients ignore unknown types.
+        v:
+          type: integer
+          description: Payload version.
+        cursor:
+          $ref: "#/components/schemas/Cursor"
