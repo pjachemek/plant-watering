@@ -130,7 +130,7 @@ Shared code lives in `core/` (design system, theming, logging, error types, resu
 
 1. UI watches a repository stream backed by Drift and renders immediately from local data.
 2. User actions write to Drift and append a row to an outbox table in the same transaction.
-3. The sync engine drains the outbox to the API (POST /v1/sync/push) with retries and exponential backoff, and pulls remote changes from GET /v1/sync/pull (a delta query, `updated_at > last_sync`) on every live-update signal, on app start and resume, on reconnect, and when a tag is scanned (the card shows cached data at once, then refreshes).
+3. The sync engine drains the outbox to the API (POST /v1/sync/push) with retries and exponential backoff, and pulls remote changes from GET /v1/sync/pull (a delta query by change cursor: each row records the transaction that last wrote it, ADR-0014) on every live-update signal, on app start and resume, on reconnect, and when a tag is scanned (the card shows cached data at once, then refreshes).
 4. While the app is in the foreground it keeps one WebSocket to its household's live-update channel (`GET /v1/live`). The socket carries only "something changed" signals; data always comes through the pull. The socket closes when the app goes to the background.
 
 **API client.** The app depends only on the versioned API, through a Dart client generated from the OpenAPI spec. The Supabase SDK is used for sign-in and token refresh only. Every request sends `X-App-Version`, `X-Platform` and `X-API-Version`. A `426 Upgrade Required` response opens a blocking update screen; below the recommended version, a dismissible prompt appears. Parsing is tolerant: unknown fields and enum values are ignored, never fatal.
@@ -236,7 +236,7 @@ The tag stores one HTTPS link and nothing else; all plant data lives in the app 
 
 ## 8. Data model and preset database
 
-All synced tables carry `id` (UUID v7), `household_id`, `created_at`, `updated_at`, `deleted_at`. Timestamps are UTC; convert to local time only in the UI.
+All synced tables carry `id` (UUID v7), `household_id`, `created_at`, `updated_at`, `deleted_at` and `change_xid` (the sync cursor, ADR-0014). Timestamps are UTC; convert to local time only in the UI.
 
 | Table | Key fields | Notes |
 | --- | --- | --- |
@@ -248,6 +248,7 @@ All synced tables carry `id` (UUID v7), `household_id`, `created_at`, `updated_a
 | `watering_events` | plant\_id, user\_id, watered\_at, source (scan, list, bulk) | Append-only |
 | `devices` | user\_id, platform, push\_token, last\_seen\_at | For FCM |
 | `notification_prefs` | user\_id, digest\_time, time\_zone, enabled, muted\_plant\_ids | Per user; the time zone is needed for server-sent digests |
+| `client_versions` | platform, min\_version, recommended\_version | Server-only; version enforcement (FR-10) |
 | `digest_sends` | user\_id, local\_date, sent\_at, plant\_ids, collapse\_key | Which digest each user got today, so it can be replaced in place |
 
 Derived values (last watered, next due, overdue) are computed, not stored, so they can never drift.
