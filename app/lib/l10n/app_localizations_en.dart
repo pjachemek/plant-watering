@@ -129,7 +129,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nfcErrorNotVerified =>
-      'The sticker didn’t save the link correctly. Try again.';
+      'The sticker didn’t save the link. Hold your phone still on the sticker and try again.';
 
   @override
   String get nfcErrorUnknown =>

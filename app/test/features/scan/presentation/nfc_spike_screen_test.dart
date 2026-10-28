@@ -116,7 +116,7 @@ void main() {
       const TagReadOnly(): 'This sticker is locked',
       const TagTooSmall(neededBytes: 60, capacityBytes: 40): 'too small',
       const TagNotNdef(): 'sticker type isn’t supported',
-      const WriteNotVerified(): 'didn’t save the link correctly',
+      const WriteNotVerified(): 'Hold your phone still on the sticker',
       const NfcUnavailable(NfcAvailability.disabled): 'NFC is turned off',
       const NfcUnavailable(NfcAvailability.unsupported): 'can’t read NFC',
       const NfcUnknownFailure('X'): 'Something went wrong',

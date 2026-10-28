@@ -313,7 +313,7 @@ abstract class AppLocalizations {
   /// Error when read-back verification failed.
   ///
   /// In en, this message translates to:
-  /// **'The sticker didn’t save the link correctly. Try again.'**
+  /// **'The sticker didn’t save the link. Hold your phone still on the sticker and try again.'**
   String get nfcErrorNotVerified;
 
   /// Generic NFC error.

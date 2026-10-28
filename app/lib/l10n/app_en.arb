@@ -144,7 +144,7 @@
   "@nfcErrorTagLost": {
     "description": "Error when the tag connection was lost."
   },
-  "nfcErrorNotVerified": "The sticker didn’t save the link correctly. Try again.",
+  "nfcErrorNotVerified": "The sticker didn’t save the link. Hold your phone still on the sticker and try again.",
   "@nfcErrorNotVerified": {
     "description": "Error when read-back verification failed."
   },

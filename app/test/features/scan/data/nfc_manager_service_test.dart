@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ndef_record/ndef_record.dart';
@@ -148,14 +150,66 @@ void main() {
     });
   });
 
+  group('verifyWrittenLink', () {
+    final link = TagLink.build(TagToken.generate());
+    final written = NdefMessage(records: [NdefUriCodec.recordFor(link)]);
+    final other = NdefMessage(
+      records: [NdefUriCodec.recordFor(TagLink.build(TagToken.generate()))],
+    );
+
+    /// Returns each message in turn and counts the reads.
+    ({Future<NdefMessage?> Function() read, int Function() count}) reader(
+      List<NdefMessage?> messages,
+    ) {
+      var reads = 0;
+      return (read: () async => messages[reads++], count: () => reads);
+    }
+
+    test('passes on the first read when the link is there', () async {
+      final r = reader([written]);
+
+      expect(await verifyWrittenLink(r.read, link), isTrue);
+      expect(r.count(), 1);
+    });
+
+    test('re-reads once after an empty or partial read-back', () async {
+      final r = reader([null, written]);
+
+      expect(await verifyWrittenLink(r.read, link), isTrue);
+      expect(r.count(), 2);
+    });
+
+    test('fails after two reads that never show the link', () async {
+      final r = reader([null, other]);
+
+      expect(await verifyWrittenLink(r.read, link), isFalse);
+      expect(r.count(), 2);
+    });
+
+    test('lets a lost tag surface as a platform error', () async {
+      Future<NdefMessage?> lost() =>
+          Future.error(PlatformException(code: 'TagLostException'));
+
+      await expectLater(
+        verifyWrittenLink(lost, link),
+        throwsA(isA<PlatformException>()),
+      );
+    });
+  });
+
   group('NfcManagerService sessions', () {
     late _FakeManager manager;
     late NfcManagerService service;
+    late List<bool> dispatch;
     final link = TagLink.build(TagToken.generate());
 
     setUp(() {
       manager = _FakeManager();
-      service = NfcManagerService(manager: manager);
+      dispatch = [];
+      service = NfcManagerService(
+        manager: manager,
+        setTagDispatch: ({required enabled}) async => dispatch.add(enabled),
+      );
     });
 
     test('maps availability', () async {
@@ -166,20 +220,29 @@ void main() {
       expect(await service.availability(), NfcAvailability.unsupported);
     });
 
-    test('does not open a session when NFC is off', () async {
+    test('does not open a session or touch dispatch when NFC is off', () async {
       manager.availability = nm.NfcAvailability.disabled;
 
       final result = await service.readTag();
 
       expect(manager.starts, 0);
+      expect(dispatch, isEmpty);
       expect(
         (result as Failure<TagContent, NfcFailure>).failure,
         isA<NfcUnavailable>(),
       );
     });
 
-    test('cancel completes a pending write with NfcCancelled and stops '
-        'the session', () async {
+    test('switches the app tag filter off before the session opens', () async {
+      unawaited(service.writeLink(link));
+      await pumpEventQueue();
+
+      expect(dispatch, [false]);
+      expect(manager.starts, 1);
+    });
+
+    test('cancel completes a pending write with NfcCancelled, stops the '
+        'session and hands the tag filter back', () async {
       final pending = service.writeLink(link);
       await pumpEventQueue();
       await service.cancel();
@@ -190,10 +253,12 @@ void main() {
         (result as Failure<void, NfcFailure>).failure,
         isA<NfcCancelled>(),
       );
-      expect(manager.stops, greaterThan(0));
+      expect(manager.stops, 1);
+      expect(dispatch, [false, true]);
     });
 
-    test('a session start error becomes a typed failure', () async {
+    test('a session start error becomes a typed failure and restores the '
+        'tag filter', () async {
       manager.startError = PlatformException(code: 'not_supported');
 
       final result = await service.readTag();
@@ -202,18 +267,61 @@ void main() {
         (result as Failure<TagContent, NfcFailure>).failure,
         isA<NfcUnavailable>(),
       );
+      expect(dispatch, [false, true]);
     });
 
-    test('a tag the platform cannot read as NDEF fails and ends the '
-        'session', () async {
-      final pending = service.writeLink(link);
+    test('the session stays open after an operation, so a phone still on '
+        'the sticker is not handed to the system', () async {
+      final first = service.writeLink(link);
       await pumpEventQueue();
       manager.discover();
+      expect((await first).isFailure, isTrue); // fake tag is not NDEF
 
-      final result = await pending;
+      expect(manager.stops, 0);
+      expect(dispatch, [false]);
 
-      expect(result.isFailure, isTrue);
-      expect(manager.stops, greaterThan(0));
+      // The sticker is re-detected while nothing is pending: ignored.
+      manager.discover();
+      await pumpEventQueue();
+
+      // The next operation reuses the open session.
+      final second = service.readTag();
+      await pumpEventQueue();
+      expect(manager.starts, 1);
+      manager.discover();
+      expect((await second).isFailure, isTrue);
+
+      await service.cancel();
+      expect(manager.stops, 1);
+      expect(dispatch, [false, true]);
     });
+
+    test('a new operation cancels the pending one', () async {
+      final first = service.readTag();
+      await pumpEventQueue();
+      final second = service.writeLink(link);
+      await pumpEventQueue();
+
+      expect(
+        (await first as Failure<TagContent, NfcFailure>).failure,
+        isA<NfcCancelled>(),
+      );
+      manager.discover();
+      expect((await second).isFailure, isTrue);
+      expect(manager.starts, 1);
+    });
+
+    test('cancel without a session does nothing', () async {
+      await service.cancel();
+
+      expect(manager.stops, 0);
+      expect(dispatch, isEmpty);
+    });
+  });
+
+  test('platformSetTagDispatch tolerates a missing native side', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+
+    await expectLater(platformSetTagDispatch(enabled: true), completes);
   });
 }

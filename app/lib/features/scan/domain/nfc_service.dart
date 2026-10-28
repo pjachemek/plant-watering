@@ -111,8 +111,11 @@ final class NfcUnknownFailure extends NfcFailure {
 }
 
 /// Platform NFC access, behind an interface so it can be faked in tests
-/// (AGENTS.md section 5). Each call opens a user-initiated session that ends
-/// when a tag has been handled or [cancel] is called (NFR Battery).
+/// (AGENTS.md section 5). The first read or write opens a user-initiated
+/// session. It stays open between operations, ignoring tags while nothing is
+/// pending, until [cancel] is called, so a phone still resting on a sticker
+/// isn't handed back to the system (NFR Battery: sessions are only opened by
+/// the user and closed with the screen that uses them).
 abstract interface class NfcService {
   Future<NfcAvailability> availability();
 
@@ -127,7 +130,7 @@ abstract interface class NfcService {
     bool overwrite = false,
   });
 
-  /// Ends the current session, if any. A pending call completes with
-  /// [NfcCancelled].
+  /// Cancels a pending call, which completes with [NfcCancelled], and ends
+  /// the session. Call it when the screen that uses NFC closes.
   Future<void> cancel();
 }
