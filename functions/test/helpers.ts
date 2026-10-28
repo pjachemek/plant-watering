@@ -40,10 +40,21 @@ export async function token(
 }
 
 /** The app with the local signing key; other options can be overridden. */
-export function testApp(options: V1Options = {}, bindings: Partial<Bindings> = {}) {
+export function testApp(
+  options: V1Options = {},
+  bindings: Partial<Bindings> = {},
+  base: Bindings = env,
+) {
   const app = createApp({ signingKeys: () => localKeys, ...options });
   return (path: string, init: RequestInit = {}) =>
-    app.fetch(new Request(`${API}${path}`, init), { ...env, ...bindings });
+    app.fetch(new Request(`${API}${path}`, init), { ...base, ...bindings });
+}
+
+/** The test environment without the database binding. */
+export function envWithoutDatabase(): Bindings {
+  return Object.fromEntries(
+    Object.entries(env).filter(([key]) => key !== "HYPERDRIVE"),
+  ) as unknown as Bindings;
 }
 
 /** Headers for a signed-in, up-to-date Android app. */

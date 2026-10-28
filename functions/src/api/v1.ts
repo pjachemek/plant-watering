@@ -205,12 +205,15 @@ export function respond(
   status: 200 | 201 = 200,
   headers: Record<string, string> = {},
 ): Response {
+  // Validate exactly what will be sent: Dates become ISO strings, undefined
+  // fields disappear.
+  const json: unknown = JSON.parse(JSON.stringify(data));
   const schema = schemaFor(c.get("operationId"), "response");
-  if (schema && !schema.safeParse(data).success) {
+  if (schema && !schema.safeParse(json).success) {
     console.error("invalid_response", c.get("operationId"));
     return problem(c, 500, "invalid_response", "Internal error");
   }
-  return c.json(data, status, headers);
+  return c.json(json, status, headers);
 }
 
 const notImplemented: OperationHandler = (c) =>

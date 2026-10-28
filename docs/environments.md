@@ -28,6 +28,26 @@ npx supabase link --project-ref utqhpnnkbiafgpnsliuz
 npx supabase db push        # applies supabase/migrations
 ```
 
-## Hyperdrive (M2.4, not yet)
+## Hyperdrive (product owner, once per project)
 
-The Worker will reach Postgres through Cloudflare Hyperdrive as a **dedicated, limited database role**, never `postgres` (AGENTS.md section 6). M2.4 adds the migration that creates that role. Once it's applied, you set the role's password and create the Hyperdrive configuration yourself, so the password never leaves your machine. The exact commands come with M2.4, following Cloudflare's Supabase guide for Hyperdrive. You then send only the Hyperdrive **id**, and the binding goes into `wrangler.jsonc`.
+The Worker connects as the dedicated role `plantnfc_api`, never `postgres` (ADR-0017). Its migration comes with `supabase db push` above. Then:
+
+1. **Generate a password** and keep it in your password manager:
+   ```sh
+   openssl rand -base64 32 | tr -d '/+='
+   ```
+2. **Set it on the role** with psql's `\password`, which prompts for it and sends only a hash, so it never appears in a query, the dashboard's SQL history or your shell history. Use the `postgres` connection string from the dashboard (Connect → Session pooler):
+   ```sh
+   docker run -it --rm postgres:17 psql "<postgres connection string>"
+   ```
+   ```
+   \password plantnfc_api
+   \q
+   ```
+3. **Create the Hyperdrive configuration.** Use the same Session pooler host and port, with the user changed to `plantnfc_api.utqhpnnkbiafgpnsliuz` (Supabase's pooler wants `<role>.<project-ref>`) and the new password. Check Cloudflare's Hyperdrive guide for Supabase in case it now recommends a different connection type.
+   ```sh
+   cd functions
+   npx wrangler hyperdrive create plant-nfc-dev --connection-string="postgres://plantnfc_api.utqhpnnkbiafgpnsliuz:<password>@<pooler host>:5432/postgres"
+   ```
+   The connection string, including the password, stays in Cloudflare. This command line contains the password, so keep it out of shell history: in Git Bash, start the line with a space (works when `HISTCONTROL` includes `ignorespace`), or delete the entry afterwards (PowerShell keeps history in `(Get-PSReadLineOption).HistorySavePath`).
+4. **Send only the Hyperdrive id** it prints. It goes into the `development` environment in `wrangler.jsonc`.

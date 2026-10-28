@@ -75,7 +75,7 @@ jobs:
       - run: flutter build apk --debug
 
   functions:
-    name: Workers (format, lint, types, test)
+    name: Workers (format, lint, types, test against a local database)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -86,7 +86,14 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: functions/package-lock.json
+          cache-dependency-path: |
+            functions/package-lock.json
+            package-lock.json
+      - name: Start a local database for the integration tests (ADR-0017)
+        working-directory: .
+        run: |
+          npm ci
+          npx supabase db start
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint:api

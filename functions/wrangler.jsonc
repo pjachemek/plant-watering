@@ -21,6 +21,16 @@
     // Per IP on public endpoints.
     { "name": "IP_RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } },
   ],
+  // Postgres through Hyperdrive as the plantnfc_api role (ADR-0017). Locally
+  // the binding connects straight to the Supabase CLI stack with its
+  // local-only password (supabase/seed.sql); the id is unused there.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "00000000000000000000000000000000",
+      "localConnectionString": "postgres://plantnfc_api:local-dev-only@127.0.0.1:54322/postgres",
+    },
+  ],
   "vars": {
     "APP_ENV": "dev",
     // Version policy until it moves to the client_versions table (M2.4).

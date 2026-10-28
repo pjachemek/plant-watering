@@ -11,7 +11,7 @@ interface ProblemBody {
 
 const call = testApp();
 const listHouseholds = async (authorization?: string, headers = VERSION_HEADERS) =>
-  call("/households", {
+  call("/account/export", {
     headers: authorization ? { ...headers, Authorization: authorization } : headers,
   });
 
@@ -70,7 +70,7 @@ describe("sign-in (Supabase JWT, AGENTS.md section 6)", () => {
     const offline = testApp({
       signingKeys: () => () => Promise.reject(new TypeError("fetch failed")),
     });
-    const res = await offline("/households", {
+    const res = await offline("/account/export", {
       headers: { ...VERSION_HEADERS, Authorization: `Bearer ${await token()}` },
     });
 
@@ -95,7 +95,7 @@ describe("version enforcement (FR-10)", () => {
   });
 
   it("lets the minimum version through", async () => {
-    const res = await strict("/households", {
+    const res = await strict("/account/export", {
       headers: await authHeaders({ "X-App-Version": "2.0.0" }),
     });
 
@@ -155,7 +155,7 @@ describe("rate limits (AGENTS.md section 6)", () => {
         return Promise.resolve({ success: false });
       },
     };
-    const res = await testApp({}, { USER_RATE_LIMITER: recording })("/households", {
+    const res = await testApp({}, { USER_RATE_LIMITER: recording })("/account/export", {
       headers: await authHeaders(),
     });
 
