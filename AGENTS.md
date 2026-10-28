@@ -250,6 +250,7 @@ All synced tables carry `id` (UUID v7), `household_id`, `created_at`, `updated_a
 | `notification_prefs` | user\_id, digest\_time, time\_zone, enabled, muted\_plant\_ids | Per user; the time zone is needed for server-sent digests |
 | `client_versions` | platform, min\_version, recommended\_version | Server-only; version enforcement (FR-10) |
 | `digest_sends` | user\_id, local\_date, sent\_at, plant\_ids, collapse\_key | Which digest each user got today, so it can be replaced in place |
+| `sync_changes` | change\_id, household\_id, idempotency\_key, status, problem | Server-only; one row per pushed change, so retries are safe (ADR-0019) |
 
 Derived values (last watered, next due, overdue) are computed, not stored, so they can never drift.
 
