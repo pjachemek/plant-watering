@@ -48,7 +48,7 @@ final class NfcSpikeControllerProvider
 }
 
 String _$nfcSpikeControllerHash() =>
-    r'83c3542a9f41bfab372dc217c0944d10320b83c6';
+    r'63344b803c96868ad30f38a0e4b4c70729fd089e';
 
 /// Drives the M1 spike screen: write a fresh test link to a sticker, or read
 /// one. All tag logic lives in [NfcService]; this only tracks UI state.
