@@ -17,17 +17,24 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "types": "wrangler types",
-    "types:check": "wrangler types --check"
+    "types:check": "wrangler types --check",
+    "generate:api": "openapi-ts && node scripts/generate-operations.mjs && prettier --write src/api/generated",
+    "lint:api": "redocly lint"
   },
   "dependencies": {
     "@sentry/cloudflare": "11.8.0",
-    "hono": "4.13.13"
+    "hono": "4.13.13",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "1.4.7",
     "@eslint/js": "10.0.1",
+    "@hey-api/openapi-ts": "0.99.0",
+    "@redocly/cli": "2.71.2",
+    "@types/js-yaml": "4.0.9",
     "@vitest/coverage-istanbul": "5.0.5",
     "eslint": "10.13.0",
+    "js-yaml": "4.3.2",
     "prettier": "3.9.10",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.0",
@@ -40,6 +47,7 @@
   },
   "overrides": {
     "undici": "7.30.1",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "js-yaml": "4.3.2"
   }
 }
