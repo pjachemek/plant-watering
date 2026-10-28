@@ -59,6 +59,35 @@ export async function asUser<T>(db: Db, user: AuthUser, work: (db: Db) => Promis
   }
 }
 
+/**
+ * Runs [work] in one transaction with the user's verified claims set but the
+ * role left as plantnfc_api, for calling the private.* functions that rows
+ * policies can't express (ADR-0018). Those functions take the caller from
+ * auth.uid(); clients can't call them. Use [asUser] for everything else.
+ */
+export async function asCaller<T>(
+  db: Db,
+  user: AuthUser,
+  work: (db: Db) => Promise<T>,
+): Promise<T> {
+  const claims = JSON.stringify({ sub: user.id, role: "authenticated" });
+  await db.query("begin");
+  try {
+    await db.query("select set_config('request.jwt.claims', $1, true)", [claims]);
+    const result = await work(db);
+    await db.query("commit");
+    return result;
+  } catch (error) {
+    await db.query("rollback").catch(() => undefined);
+    throw error;
+  }
+}
+
+/** Postgres refused for lack of privilege, including an RLS violation. */
+export function isPermissionDenied(error: unknown): boolean {
+  return (error as { code?: unknown } | null)?.code === "42501";
+}
+
 /** Runs a parameterised query and returns its rows. */
 export async function rows<R extends QueryResultRow>(
   db: Db,

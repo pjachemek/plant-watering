@@ -38,11 +38,7 @@ describe("contract coverage", () => {
   });
 
   it("answers 501 for a valid request to an operation without a handler yet", async () => {
-    const res = await call("/households", {
-      method: "POST",
-      headers: await authHeaders(),
-      body: JSON.stringify({ name: "Home", display_name: "Ann" }),
-    });
+    const res = await call("/account/export", { headers: await authHeaders() });
 
     expect(res.status).toBe(501);
     expect((await res.json<ProblemBody>()).type).toBe("not_implemented");

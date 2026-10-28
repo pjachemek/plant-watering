@@ -6,7 +6,8 @@ import { securityHeaders } from "../lib/security-headers";
 import { problem } from "./problem";
 import { DatabaseUnavailable } from "../db/client";
 import { createDbVersionPolicy } from "../db/version-policy";
-import { listHouseholds } from "./handlers/households";
+import { createHousehold, leaveHousehold, listHouseholds } from "./handlers/households";
+import { acceptInvite, createInvite } from "./handlers/invites";
 import { createV1, type V1Options } from "./v1";
 
 /** No database binding, or the database can't be reached: worth a retry. */
@@ -32,7 +33,14 @@ export function createApiApp(options: V1Options = {}): Hono<{ Bindings: Bindings
     createV1({
       ...options,
       versionPolicy: options.versionPolicy ?? createDbVersionPolicy(),
-      handlers: { listHouseholds, ...options.handlers },
+      handlers: {
+        listHouseholds,
+        createHousehold,
+        leaveHousehold,
+        createInvite,
+        acceptInvite,
+        ...options.handlers,
+      },
     }),
   );
 
