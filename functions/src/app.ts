@@ -1,5 +1,6 @@
 import type { Hono } from "hono";
 import { createApiApp } from "./api";
+import type { V1Options } from "./api/v1";
 import type { Bindings } from "./env";
 import { createWebApp } from "./web";
 
@@ -10,12 +11,12 @@ type App = Hono<{ Bindings: Bindings }>;
  * JSON API, every other host gets the web app (app-link files and pages).
  * Kept separate from the entry point so tests can run it without Sentry.
  */
-export function createApp(): {
+export function createApp(options: V1Options = {}): {
   api: App;
   web: App;
   fetch: (request: Request, env: Bindings, ctx?: ExecutionContext) => Response | Promise<Response>;
 } {
-  const api = createApiApp();
+  const api = createApiApp(options);
   const web = createWebApp();
   return {
     api,

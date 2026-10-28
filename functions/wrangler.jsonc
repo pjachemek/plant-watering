@@ -9,8 +9,23 @@
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  // Rate limiters are not inherited by environments, so each declares its own
+  // counters (separate namespaces).
+  "ratelimits": [
+    // Per signed-in user on every authenticated endpoint (AGENTS.md section 6).
+    {
+      "name": "USER_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 120, "period": 60 },
+    },
+    // Per IP on public endpoints.
+    { "name": "IP_RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } },
+  ],
   "vars": {
     "APP_ENV": "dev",
+    // Version policy until it moves to the client_versions table (M2.4).
+    "MIN_APP_VERSION": "0.1.0",
+    "RECOMMENDED_APP_VERSION": "0.1.0",
     // *.localhost resolves to this machine: curl http://api.localhost:8787/health
     "API_HOST": "api.localhost",
     "SUPABASE_URL": "http://127.0.0.1:54321",
@@ -18,8 +33,24 @@
   "env": {
     "staging": {
       "name": "plant-nfc-staging",
+      "ratelimits": [
+        // Per signed-in user on every authenticated endpoint (AGENTS.md section 6).
+        {
+          "name": "USER_RATE_LIMITER",
+          "namespace_id": "2001",
+          "simple": { "limit": 120, "period": 60 },
+        },
+        // Per IP on public endpoints.
+        {
+          "name": "IP_RATE_LIMITER",
+          "namespace_id": "2002",
+          "simple": { "limit": 60, "period": 60 },
+        },
+      ],
       "vars": {
         "APP_ENV": "staging",
+        "MIN_APP_VERSION": "0.1.0",
+        "RECOMMENDED_APP_VERSION": "0.1.0",
         "API_HOST": "api.staging.plants.pampait.pl",
         "SUPABASE_URL": "https://STAGING_PROJECT_REF.supabase.co",
       },
@@ -31,8 +62,24 @@
         { "pattern": "plants.pampait.pl", "custom_domain": true },
         { "pattern": "api.plants.pampait.pl", "custom_domain": true },
       ],
+      "ratelimits": [
+        // Per signed-in user on every authenticated endpoint (AGENTS.md section 6).
+        {
+          "name": "USER_RATE_LIMITER",
+          "namespace_id": "3001",
+          "simple": { "limit": 120, "period": 60 },
+        },
+        // Per IP on public endpoints.
+        {
+          "name": "IP_RATE_LIMITER",
+          "namespace_id": "3002",
+          "simple": { "limit": 60, "period": 60 },
+        },
+      ],
       "vars": {
         "APP_ENV": "production",
+        "MIN_APP_VERSION": "0.1.0",
+        "RECOMMENDED_APP_VERSION": "0.1.0",
         "API_HOST": "api.plants.pampait.pl",
         "SUPABASE_URL": "https://PROD_PROJECT_REF.supabase.co",
       },

@@ -4,7 +4,7 @@ import type { Bindings } from "../env";
 import { healthHandler } from "../lib/health";
 import { securityHeaders } from "../lib/security-headers";
 import { problem } from "./problem";
-import { createV1 } from "./v1";
+import { createV1, type V1Options } from "./v1";
 
 /**
  * The versioned API (api.plants.pampait.pl/v1), the only backend the app talks
@@ -12,12 +12,12 @@ import { createV1 } from "./v1";
  * request is validated against it (ADR-0015). Auth and version enforcement
  * arrive in M2 increment 2.3.
  */
-export function createApiApp(): Hono<{ Bindings: Bindings }> {
+export function createApiApp(options: V1Options = {}): Hono<{ Bindings: Bindings }> {
   const app = new Hono<{ Bindings: Bindings }>();
 
   app.use("*", securityHeaders);
   app.get("/health", healthHandler);
-  app.route("/v1", createV1());
+  app.route("/v1", createV1(options));
 
   app.notFound((c) => problem(c, 404, "not_found", "Not found"));
   app.onError((err, c) => {
