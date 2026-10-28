@@ -31,6 +31,13 @@
       "localConnectionString": "postgres://plantnfc_api:local-dev-only@127.0.0.1:54322/postgres",
     },
   ],
+  // One Durable Object per household for live updates (ADR-0013, ADR-0020).
+  // SQLite-backed, as Cloudflare recommends for new classes (and the only kind
+  // on the Free plan). Bindings are not inherited: each environment repeats it.
+  "durable_objects": {
+    "bindings": [{ "name": "HOUSEHOLD_LIVE", "class_name": "HouseholdLive" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["HouseholdLive"] }],
   "vars": {
     "APP_ENV": "dev",
     // Version policy fallback when the database can't be read (ADR-0017).
@@ -45,6 +52,9 @@
     // staging exists. Local `wrangler dev` stays on the local Supabase stack.
     "development": {
       "name": "plant-nfc-development",
+      "durable_objects": {
+        "bindings": [{ "name": "HOUSEHOLD_LIVE", "class_name": "HouseholdLive" }],
+      },
       // plant-nfc-dev: the Supabase dev project as plantnfc_api through the
       // shared session pooler (docs/environments.md). Not inherited.
       "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "63de0c5bfe174cada9afa12c669d4f43" }],
@@ -71,6 +81,9 @@
     },
     "staging": {
       "name": "plant-nfc-staging",
+      "durable_objects": {
+        "bindings": [{ "name": "HOUSEHOLD_LIVE", "class_name": "HouseholdLive" }],
+      },
       "ratelimits": [
         // Per signed-in user on every authenticated endpoint (AGENTS.md section 6).
         {
@@ -95,6 +108,9 @@
     },
     "production": {
       "name": "plant-nfc-production",
+      "durable_objects": {
+        "bindings": [{ "name": "HOUSEHOLD_LIVE", "class_name": "HouseholdLive" }],
+      },
       // Needs the pampait.pl zone on this Cloudflare account (docs/deploy.md).
       "routes": [
         { "pattern": "plants.pampait.pl", "custom_domain": true },

@@ -3,6 +3,8 @@ import { createApp } from "./app";
 import type { Bindings } from "./env";
 import { scrubEvent } from "./lib/sentry";
 
+export { HouseholdLive } from "./live/household-live";
+
 const app = createApp();
 
 export default Sentry.withSentry(
