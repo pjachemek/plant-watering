@@ -50,3 +50,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    # Generated from presets/presets.json by `npm run presets:sync`; CI fails
+    # when it is stale (ADR-0028). Never edit it here.
+    - assets/presets/presets.json
