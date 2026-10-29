@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plantnfc/core/design/app_theme.dart';
 import 'package:plantnfc/core/router/app_router.dart';
+import 'package:plantnfc/core/sync/live_updates.dart';
 import 'package:plantnfc/core/sync/sync_controller.dart';
 import 'package:plantnfc/features/app_update/presentation/app_update_controller.dart';
 import 'package:plantnfc/features/app_update/presentation/update_required_screen.dart';
@@ -29,8 +30,13 @@ class _PlantAppState extends ConsumerState<PlantApp> {
       onResume: () {
         _checkVersion();
         ref.read(syncControllerProvider.notifier).appResumed();
+        ref.read(liveUpdatesProvider.notifier).appResumed();
       },
-      onHide: () => ref.read(syncControllerProvider.notifier).appPaused(),
+      onHide: () {
+        ref.read(syncControllerProvider.notifier).appPaused();
+        // The live socket is for the foreground only (NFR Battery).
+        ref.read(liveUpdatesProvider.notifier).appPaused();
+      },
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkVersion());
   }
@@ -49,7 +55,9 @@ class _PlantAppState extends ConsumerState<PlantApp> {
     // Keeps syncing running for the app's lifetime: now if signed in,
     // otherwise once someone signs in. Listened, not read, because Riverpod
     // pauses a provider nobody listens to (and its outbox subscription).
-    ref.listen(syncControllerProvider, (_, _) {});
+    ref
+      ..listen(syncControllerProvider, (_, _) {})
+      ..listen(liveUpdatesProvider, (_, _) {});
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: AppTheme.light(),

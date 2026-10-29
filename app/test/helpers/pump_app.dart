@@ -6,6 +6,7 @@ import 'package:plantnfc/app.dart';
 import 'package:plantnfc/core/config/app_config.dart';
 import 'package:plantnfc/core/config/config_provider.dart';
 import 'package:plantnfc/core/router/app_router.dart';
+import 'package:plantnfc/core/sync/live_updates.dart';
 import 'package:plantnfc/core/sync/sync_controller.dart';
 import 'package:plantnfc/features/app_update/data/api_version_policy_source.dart';
 import 'package:plantnfc/features/app_update/domain/version_policy.dart';
@@ -59,6 +60,8 @@ List<Override> testOverrides({
   // Widget tests don't sync; the engine has its own tests.
   syncRunnerProvider.overrideWithValue((_) async => null),
   outboxSizeProvider.overrideWith((ref) => const Stream<int>.empty()),
+  // No socket in widget tests; live updates have their own tests.
+  liveUpdatesProvider.overrideWith(_NoLiveUpdates.new),
   ...overrides,
 ];
 
@@ -103,4 +106,9 @@ Future<ProviderContainer> pumpApp(
   );
   await tester.pumpAndSettle();
   return container;
+}
+
+class _NoLiveUpdates extends LiveUpdates {
+  @override
+  LiveStatus build() => LiveStatus.off;
 }
