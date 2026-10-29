@@ -290,6 +290,23 @@ describe("tags (FR-3, FR-6)", () => {
     });
   });
 
+  it("frees a token as soon as its tag is deleted (ADR-0027)", async () => {
+    const catTag = uuidv7();
+    await push(
+      CAT,
+      [{ entity: "tag", op: "upsert", id: catTag, tag: { token: "Frd0000000000000000000" } }],
+      uuidv7(),
+      other,
+    );
+    await push(CAT, [{ entity: "tag", op: "delete", id: catTag }], uuidv7(), other);
+
+    const res = await push(ANN, [
+      { entity: "tag", op: "upsert", id: uuidv7(), tag: { token: "Frd0000000000000000000" } },
+    ]);
+
+    expect(res.statuses).toEqual(["applied"]);
+  });
+
   it("refuses to change a tag's token", async () => {
     const tag = uuidv7();
     await push(ANN, [
