@@ -2,7 +2,7 @@
   "name": "plant-nfc",
   "version": "0.0.0",
   "private": true,
-  "description": "Repo-level tooling: pinned Supabase CLI. The Workers project lives in functions/.",
+  "description": "Repo-level tooling: pinned Supabase CLI and the presets validator. The Workers project lives in functions/.",
   "engines": {
     "node": ">=24"
   },
@@ -11,9 +11,14 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
-    "db:lint": "supabase db lint --level warning --fail-on warning"
+    "db:lint": "supabase db lint --level warning --fail-on warning",
+    "presets:validate": "node presets/validate.mjs",
+    "presets:sync": "node presets/validate.mjs --sync",
+    "presets:test": "node --test \"presets/*.test.mjs\""
   },
   "devDependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
     "supabase": "2.121.0"
   }
 }
