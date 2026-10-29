@@ -3,7 +3,6 @@ import { Hono } from "hono";
 import type { Bindings } from "./env";
 import { healthHandler } from "./lib/health";
 import { securityHeaders } from "./lib/security-headers";
-import { authCallbackPage } from "./routes/auth-callback-page";
 import { tagPage } from "./routes/tag-page";
 import { wellKnown } from "./routes/well-known";
 
@@ -18,7 +17,6 @@ export function createWebApp(): Hono<{ Bindings: Bindings }> {
   app.get("/health", healthHandler);
   app.route("/.well-known", wellKnown);
   app.route("/p", tagPage);
-  app.route("/auth", authCallbackPage);
 
   app.notFound((c) => c.text("Not found", 404));
   app.onError((err, c) => {
