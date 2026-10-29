@@ -719,6 +719,20 @@
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
+          },
+          {
+            "name": "full_pull_needed",
+            "getter_name": "fullPullNeeded",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "CHECK (\"full_pull_needed\" IN (0, 1))",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "CHECK (\"full_pull_needed\" IN (0, 1))"
+            },
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
           }
         ],
         "is_virtual": false,
@@ -893,7 +907,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"sync_states\" (\"household_id\" TEXT NOT NULL, \"cursor\" TEXT NULL, \"pulled_at\" TEXT NULL, PRIMARY KEY (\"household_id\"));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"sync_states\" (\"household_id\" TEXT NOT NULL, \"cursor\" TEXT NULL, \"pulled_at\" TEXT NULL, \"full_pull_needed\" INTEGER NOT NULL DEFAULT 0 CHECK (\"full_pull_needed\" IN (0, 1)), PRIMARY KEY (\"household_id\"));"
         }
       ]
     },

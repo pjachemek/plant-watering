@@ -71,12 +71,7 @@ class LocalChanges {
   Future<String> record(LocalChange change, {required String userId}) =>
       _db.transaction(() async {
         final now = _clock().toUtc();
-        await switch (change.entity) {
-          ChangeEntity.household => _household(change, now),
-          ChangeEntity.plant => _plant(change, now),
-          ChangeEntity.tag => _tag(change, now, userId),
-          ChangeEntity.wateringEvent => _watering(change, now, userId),
-        };
+        await _apply(change, now, userId);
         final changeId = _newId();
         await _db
             .into(_db.outbox)
@@ -103,6 +98,37 @@ class LocalChanges {
             );
         return changeId;
       });
+
+  /// Re-applies this phone's queued changes to [rowIds] of [householdId],
+  /// in the order they were made, after a pull wrote the server's version:
+  /// what the person changed stays on screen until the API has it.
+  /// Call inside the pull's transaction.
+  Future<void> reapplyPending({
+    required String householdId,
+    required Set<String> rowIds,
+    required String userId,
+  }) async {
+    if (rowIds.isEmpty) return;
+    final pending =
+        await (_db.select(_db.outbox)
+              ..where(
+                (o) => o.householdId.equals(householdId) & o.rowId.isIn(rowIds),
+              )
+              ..orderBy([(o) => OrderingTerm(expression: o.seq)]))
+            .get();
+    final now = _clock().toUtc();
+    for (final row in pending) {
+      await _apply(changeOf(row), now, userId);
+    }
+  }
+
+  Future<void> _apply(LocalChange change, DateTime now, String userId) =>
+      switch (change.entity) {
+        ChangeEntity.household => _household(change, now),
+        ChangeEntity.plant => _plant(change, now),
+        ChangeEntity.tag => _tag(change, now, userId),
+        ChangeEntity.wateringEvent => _watering(change, now, userId),
+      };
 
   Future<void> _household(LocalChange c, DateTime now) async {
     if (c.op == ChangeOp.delete) {
@@ -235,6 +261,24 @@ class LocalChanges {
           mode: InsertMode.insertOrIgnore,
         );
   }
+}
+
+/// The [LocalChange] an outbox row was made from.
+LocalChange changeOf(OutboxRow row) {
+  final fields = row.fields;
+  final patch = row.patch;
+  return LocalChange(
+    householdId: row.householdId,
+    entity: ChangeEntity.values.firstWhere((e) => e.apiName == row.entity),
+    op: ChangeOp.values.firstWhere((o) => o.apiName == row.op),
+    rowId: row.rowId,
+    patch: patch == null
+        ? const {}
+        : (jsonDecode(patch) as Map<String, Object?>),
+    fields: fields == null
+        ? null
+        : (jsonDecode(fields) as List<Object?>).cast<String>(),
+  );
 }
 
 /// Reads one change's patch the way the API applies it: a listed field takes

@@ -3549,8 +3549,28 @@ class $SyncStatesTable extends SyncStates
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _fullPullNeededMeta = const VerificationMeta(
+    'fullPullNeeded',
+  );
   @override
-  List<GeneratedColumn> get $columns => [householdId, cursor, pulledAt];
+  late final GeneratedColumn<bool> fullPullNeeded = GeneratedColumn<bool>(
+    'full_pull_needed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("full_pull_needed" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    householdId,
+    cursor,
+    pulledAt,
+    fullPullNeeded,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3586,6 +3606,15 @@ class $SyncStatesTable extends SyncStates
         pulledAt.isAcceptableOrUnknown(data['pulled_at']!, _pulledAtMeta),
       );
     }
+    if (data.containsKey('full_pull_needed')) {
+      context.handle(
+        _fullPullNeededMeta,
+        fullPullNeeded.isAcceptableOrUnknown(
+          data['full_pull_needed']!,
+          _fullPullNeededMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -3607,6 +3636,10 @@ class $SyncStatesTable extends SyncStates
         DriftSqlType.dateTime,
         data['${effectivePrefix}pulled_at'],
       ),
+      fullPullNeeded: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}full_pull_needed'],
+      )!,
     );
   }
 
@@ -3622,7 +3655,16 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
   /// The opaque cursor from the last pull, or null before the first.
   final String? cursor;
   final DateTime? pulledAt;
-  const SyncStateRow({required this.householdId, this.cursor, this.pulledAt});
+
+  /// Set when the API rejected a change: the next pull fetches everything,
+  /// so rows the server never accepted disappear from this phone.
+  final bool fullPullNeeded;
+  const SyncStateRow({
+    required this.householdId,
+    this.cursor,
+    this.pulledAt,
+    required this.fullPullNeeded,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3633,6 +3675,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
     if (!nullToAbsent || pulledAt != null) {
       map['pulled_at'] = Variable<DateTime>(pulledAt);
     }
+    map['full_pull_needed'] = Variable<bool>(fullPullNeeded);
     return map;
   }
 
@@ -3645,6 +3688,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
       pulledAt: pulledAt == null && nullToAbsent
           ? const Value.absent()
           : Value(pulledAt),
+      fullPullNeeded: Value(fullPullNeeded),
     );
   }
 
@@ -3657,6 +3701,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
       householdId: serializer.fromJson<String>(json['householdId']),
       cursor: serializer.fromJson<String?>(json['cursor']),
       pulledAt: serializer.fromJson<DateTime?>(json['pulledAt']),
+      fullPullNeeded: serializer.fromJson<bool>(json['fullPullNeeded']),
     );
   }
   @override
@@ -3666,6 +3711,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
       'householdId': serializer.toJson<String>(householdId),
       'cursor': serializer.toJson<String?>(cursor),
       'pulledAt': serializer.toJson<DateTime?>(pulledAt),
+      'fullPullNeeded': serializer.toJson<bool>(fullPullNeeded),
     };
   }
 
@@ -3673,10 +3719,12 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
     String? householdId,
     Value<String?> cursor = const Value.absent(),
     Value<DateTime?> pulledAt = const Value.absent(),
+    bool? fullPullNeeded,
   }) => SyncStateRow(
     householdId: householdId ?? this.householdId,
     cursor: cursor.present ? cursor.value : this.cursor,
     pulledAt: pulledAt.present ? pulledAt.value : this.pulledAt,
+    fullPullNeeded: fullPullNeeded ?? this.fullPullNeeded,
   );
   SyncStateRow copyWithCompanion(SyncStatesCompanion data) {
     return SyncStateRow(
@@ -3685,6 +3733,9 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
           : this.householdId,
       cursor: data.cursor.present ? data.cursor.value : this.cursor,
       pulledAt: data.pulledAt.present ? data.pulledAt.value : this.pulledAt,
+      fullPullNeeded: data.fullPullNeeded.present
+          ? data.fullPullNeeded.value
+          : this.fullPullNeeded,
     );
   }
 
@@ -3693,49 +3744,57 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
     return (StringBuffer('SyncStateRow(')
           ..write('householdId: $householdId, ')
           ..write('cursor: $cursor, ')
-          ..write('pulledAt: $pulledAt')
+          ..write('pulledAt: $pulledAt, ')
+          ..write('fullPullNeeded: $fullPullNeeded')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(householdId, cursor, pulledAt);
+  int get hashCode =>
+      Object.hash(householdId, cursor, pulledAt, fullPullNeeded);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SyncStateRow &&
           other.householdId == this.householdId &&
           other.cursor == this.cursor &&
-          other.pulledAt == this.pulledAt);
+          other.pulledAt == this.pulledAt &&
+          other.fullPullNeeded == this.fullPullNeeded);
 }
 
 class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
   final Value<String> householdId;
   final Value<String?> cursor;
   final Value<DateTime?> pulledAt;
+  final Value<bool> fullPullNeeded;
   final Value<int> rowid;
   const SyncStatesCompanion({
     this.householdId = const Value.absent(),
     this.cursor = const Value.absent(),
     this.pulledAt = const Value.absent(),
+    this.fullPullNeeded = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SyncStatesCompanion.insert({
     required String householdId,
     this.cursor = const Value.absent(),
     this.pulledAt = const Value.absent(),
+    this.fullPullNeeded = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : householdId = Value(householdId);
   static Insertable<SyncStateRow> custom({
     Expression<String>? householdId,
     Expression<String>? cursor,
     Expression<DateTime>? pulledAt,
+    Expression<bool>? fullPullNeeded,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (householdId != null) 'household_id': householdId,
       if (cursor != null) 'cursor': cursor,
       if (pulledAt != null) 'pulled_at': pulledAt,
+      if (fullPullNeeded != null) 'full_pull_needed': fullPullNeeded,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3744,12 +3803,14 @@ class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
     Value<String>? householdId,
     Value<String?>? cursor,
     Value<DateTime?>? pulledAt,
+    Value<bool>? fullPullNeeded,
     Value<int>? rowid,
   }) {
     return SyncStatesCompanion(
       householdId: householdId ?? this.householdId,
       cursor: cursor ?? this.cursor,
       pulledAt: pulledAt ?? this.pulledAt,
+      fullPullNeeded: fullPullNeeded ?? this.fullPullNeeded,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3766,6 +3827,9 @@ class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
     if (pulledAt.present) {
       map['pulled_at'] = Variable<DateTime>(pulledAt.value);
     }
+    if (fullPullNeeded.present) {
+      map['full_pull_needed'] = Variable<bool>(fullPullNeeded.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3778,6 +3842,7 @@ class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
           ..write('householdId: $householdId, ')
           ..write('cursor: $cursor, ')
           ..write('pulledAt: $pulledAt, ')
+          ..write('fullPullNeeded: $fullPullNeeded, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5575,12 +5640,14 @@ typedef $$SyncStatesTableCreateCompanionBuilder = SyncStatesCompanion Function({
   required String householdId,
   Value<String?> cursor,
   Value<DateTime?> pulledAt,
+  Value<bool> fullPullNeeded,
   Value<int> rowid,
 });
 typedef $$SyncStatesTableUpdateCompanionBuilder = SyncStatesCompanion Function({
   Value<String> householdId,
   Value<String?> cursor,
   Value<DateTime?> pulledAt,
+  Value<bool> fullPullNeeded,
   Value<int> rowid,
 });
 
@@ -5605,6 +5672,11 @@ class $$SyncStatesTableFilterComposer
 
   ColumnFilters<DateTime> get pulledAt => $composableBuilder(
     column: $table.pulledAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get fullPullNeeded => $composableBuilder(
+    column: $table.fullPullNeeded,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5632,6 +5704,11 @@ class $$SyncStatesTableOrderingComposer
     column: $table.pulledAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get fullPullNeeded => $composableBuilder(
+    column: $table.fullPullNeeded,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SyncStatesTableAnnotationComposer
@@ -5653,6 +5730,11 @@ class $$SyncStatesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get pulledAt =>
       $composableBuilder(column: $table.pulledAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get fullPullNeeded => $composableBuilder(
+    column: $table.fullPullNeeded,
+    builder: (column) => column,
+  );
 }
 
 class $$SyncStatesTableTableManager
@@ -5689,11 +5771,13 @@ class $$SyncStatesTableTableManager
                 Value<String> householdId = const Value.absent(),
                 Value<String?> cursor = const Value.absent(),
                 Value<DateTime?> pulledAt = const Value.absent(),
+                Value<bool> fullPullNeeded = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SyncStatesCompanion(
                 householdId: householdId,
                 cursor: cursor,
                 pulledAt: pulledAt,
+                fullPullNeeded: fullPullNeeded,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5701,11 +5785,13 @@ class $$SyncStatesTableTableManager
                 required String householdId,
                 Value<String?> cursor = const Value.absent(),
                 Value<DateTime?> pulledAt = const Value.absent(),
+                Value<bool> fullPullNeeded = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SyncStatesCompanion.insert(
                 householdId: householdId,
                 cursor: cursor,
                 pulledAt: pulledAt,
+                fullPullNeeded: fullPullNeeded,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

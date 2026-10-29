@@ -1,3 +1,7 @@
+// Needs SQLite: run in Docker on Windows with Smart App Control (README).
+@Tags(['database'])
+library;
+
 import 'dart:convert';
 
 import 'package:drift/drift.dart' hide isNull;

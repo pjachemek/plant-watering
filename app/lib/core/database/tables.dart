@@ -132,6 +132,11 @@ class SyncStates extends Table {
   TextColumn get cursor => text().nullable()();
   DateTimeColumn get pulledAt => dateTime().nullable()();
 
+  /// Set when the API rejected a change: the next pull fetches everything,
+  /// so rows the server never accepted disappear from this phone.
+  BoolColumn get fullPullNeeded =>
+      boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column<Object>> get primaryKey => {householdId};
 }
