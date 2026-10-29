@@ -244,7 +244,7 @@ All synced tables carry `id` (UUID v7), `household_id`, `created_at`, `updated_a
 | `household_members` | household\_id, user\_id, display\_name, joined\_at | Equal rights in MVP |
 | `invites` | household\_id, code\_hash, expires\_at, used\_at | Store a hash, never the code |
 | `plants` | nickname, preset\_id, room, photo\_path, overrides (interval\_summer\_days, interval\_winter\_days, amount, method, notes) | Overrides null = use preset |
-| `tags` | token, plant\_id, written\_at, written\_by | Unique token; one active tag per plant |
+| `tags` | token, plant\_id, written\_at, written\_by | Token unique among active tags, freed when its tag is deleted (ADR-0027); one active tag per plant |
 | `watering_events` | plant\_id, user\_id, watered\_at, source (scan, list, bulk) | Append-only |
 | `devices` | user\_id, platform, push\_token, last\_seen\_at | For FCM |
 | `notification_prefs` | user\_id, digest\_time, time\_zone, enabled, muted\_plant\_ids | Per user; the time zone is needed for server-sent digests |
