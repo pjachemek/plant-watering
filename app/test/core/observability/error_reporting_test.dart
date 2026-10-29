@@ -10,6 +10,7 @@ void main() {
       supabaseUrl: '',
       supabaseAnonKey: '',
       sentryDsn: '',
+      googleWebClientId: '',
     );
     var ran = false;
 
@@ -34,6 +35,7 @@ void main() {
       supabaseUrl: '',
       supabaseAnonKey: '',
       sentryDsn: 'https://public@o0.ingest.sentry.io/0',
+      googleWebClientId: '',
     );
 
     expect(config.errorReportingEnabled, isTrue);
