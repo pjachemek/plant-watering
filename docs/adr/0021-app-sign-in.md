@@ -56,6 +56,17 @@ FR-7 asks for sign-in with Apple, Google or an email magic link. Apple waits wit
 
 **Configuration:** the Web client id comes from `GOOGLE_WEB_CLIENT_ID` (`--dart-define`). Client ids aren't secrets, but each environment has its own, so they live in the untracked `.env`, not the code. The client secret exists only in the Supabase dashboard.
 
+## Device findings (Pixel 9 Pro, Android 17, 2026-10-29)
+
+Verified on the device: Google sign-in; staying signed in after the app is closed; a tag that cold-starts the app, both signed in and signed out; sign-out; and signing in again straight after signing out. Email links weren't tested, because the dev project has email turned off for now.
+
+Two bugs were found and fixed, each with a regression test:
+
+- **Sign-in undone by a slow sign-out.** Forgetting the Google account took about 3 s, because Android waits for every registered credential provider; here Microsoft Authenticator timed out. Sign-out waited for that step, then forced "signed out", undoing a sign-in made in the meantime.
+  - Now everything sign-out must do at once happens before any slow step, and the status always follows the client's current session, never a late event.
+- **The wrong screen after a tag cold start.** Android hands an app link to Flutter as the full URL. The redirect kept it whole as `from`, then refused it after sign-in as "outside the app" and opened the plant list.
+  - Now `from` keeps only the path and query.
+
 ## Dependencies
 
 | Package | Use | Licence | Publisher | Maintenance (2026-10-29) |
