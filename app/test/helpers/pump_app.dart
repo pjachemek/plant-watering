@@ -6,6 +6,7 @@ import 'package:plantnfc/app.dart';
 import 'package:plantnfc/core/config/app_config.dart';
 import 'package:plantnfc/core/config/config_provider.dart';
 import 'package:plantnfc/core/router/app_router.dart';
+import 'package:plantnfc/core/sync/sync_controller.dart';
 import 'package:plantnfc/features/app_update/data/api_version_policy_source.dart';
 import 'package:plantnfc/features/app_update/domain/version_policy.dart';
 import 'package:plantnfc/features/auth/data/auth_providers.dart';
@@ -34,6 +35,26 @@ const AppConfig testConfigWithoutGoogle = AppConfig(
   googleWebClientId: '',
 );
 
+/// The overrides every widget test needs: a fake sign-in (signed in unless
+/// [auth] says otherwise), [config], an up-to-date version policy, and no
+/// syncing or database. [overrides] come last and win.
+List<Override> testOverrides({
+  AuthRepository? auth,
+  VersionPolicySource? versionPolicy,
+  AppConfig config = testConfig,
+  List<Override> overrides = const [],
+}) => [
+  authRepositoryProvider.overrideWithValue(auth ?? FakeAuthRepository()),
+  appConfigProvider.overrideWithValue(config),
+  versionPolicySourceProvider.overrideWithValue(
+    versionPolicy ?? FakeVersionPolicySource(),
+  ),
+  // Widget tests don't sync; the engine has its own tests.
+  syncRunnerProvider.overrideWithValue((_) async => null),
+  outboxSizeProvider.overrideWith((ref) => const Stream<int>.empty()),
+  ...overrides,
+];
+
 /// Pumps the real app at [location], with the given platform brightness and
 /// text scale, with optional provider [overrides], and returns the provider
 /// container. Signed in unless an [auth] repository says otherwise.
@@ -58,14 +79,12 @@ Future<ProviderContainer> pumpApp(
   addTearDown(tester.view.reset);
 
   final container = ProviderContainer(
-    overrides: [
-      authRepositoryProvider.overrideWithValue(auth ?? FakeAuthRepository()),
-      appConfigProvider.overrideWithValue(config),
-      versionPolicySourceProvider.overrideWithValue(
-        versionPolicy ?? FakeVersionPolicySource(),
-      ),
-      ...overrides,
-    ],
+    overrides: testOverrides(
+      auth: auth,
+      versionPolicy: versionPolicy,
+      config: config,
+      overrides: overrides,
+    ),
   );
   addTearDown(container.dispose);
   container.read(appRouterProvider).go(location);

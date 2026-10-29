@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plantnfc/app.dart';
-import 'package:plantnfc/core/config/config_provider.dart';
 import 'package:plantnfc/core/result/result.dart';
 import 'package:plantnfc/core/router/app_router.dart';
-import 'package:plantnfc/features/auth/data/auth_providers.dart';
 import 'package:plantnfc/features/auth/domain/auth_status.dart';
 
 import '../../../helpers/fake_auth_repository.dart';
@@ -69,10 +67,7 @@ void main() {
           tester.binding.platformDispatcher.clearDefaultRouteNameTestValue,
         );
         final container = ProviderContainer(
-          overrides: [
-            authRepositoryProvider.overrideWithValue(auth),
-            appConfigProvider.overrideWithValue(testConfig),
-          ],
+          overrides: testOverrides(auth: auth),
         );
         addTearDown(container.dispose);
         await tester.pumpWidget(
