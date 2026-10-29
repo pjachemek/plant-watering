@@ -151,5 +151,91 @@
   "nfcErrorUnknown": "Something went wrong with the sticker. Try again.",
   "@nfcErrorUnknown": {
     "description": "Generic NFC error."
+  },
+  "signInTitle": "Sign in to Plant NFC",
+  "@signInTitle": {
+    "description": "Heading of the sign-in screen."
+  },
+  "signInBody": "Everyone in your household sees the same plants and waterings.",
+  "@signInBody": {
+    "description": "Explanation under the sign-in heading."
+  },
+  "signInIllustrationLabel": "Plant NFC",
+  "@signInIllustrationLabel": {
+    "description": "Screen reader label for the sign-in illustration."
+  },
+  "signInGoogleAction": "Continue with Google",
+  "@signInGoogleAction": {
+    "description": "Button that signs in with a Google account."
+  },
+  "signInOr": "or",
+  "@signInOr": {
+    "description": "Separator between Google sign-in and email sign-in."
+  },
+  "signInEmailLabel": "Email address",
+  "@signInEmailLabel": {
+    "description": "Label of the email field on the sign-in screen."
+  },
+  "signInEmailAction": "Email me a sign-in link",
+  "@signInEmailAction": {
+    "description": "Button that sends a sign-in link by email."
+  },
+  "signInLinkSentTitle": "Check your email",
+  "@signInLinkSentTitle": {
+    "description": "Heading shown after a sign-in link was sent."
+  },
+  "signInLinkSentBody": "We sent a sign-in link to {email}. Open it on this phone to sign in.",
+  "@signInLinkSentBody": {
+    "description": "Shown after a sign-in link was sent.",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "ann@example.com"
+      }
+    }
+  },
+  "signInDifferentEmailAction": "Use a different email",
+  "@signInDifferentEmailAction": {
+    "description": "Button that goes back to the email form."
+  },
+  "authErrorNetwork": "Can't reach the server. Check your connection and try again.",
+  "@authErrorNetwork": {
+    "description": "Sign-in error: no connection."
+  },
+  "authErrorInvalidEmail": "Enter a valid email address.",
+  "@authErrorInvalidEmail": {
+    "description": "Sign-in error: the email address can't be used."
+  },
+  "authErrorRateLimited": "Too many attempts. Wait a minute, then try again.",
+  "@authErrorRateLimited": {
+    "description": "Sign-in error: too many link requests."
+  },
+  "authErrorLinkInvalid": "This sign-in link can't be used. It may have expired, been used already, or been opened on another phone. Ask for a new one.",
+  "@authErrorLinkInvalid": {
+    "description": "Sign-in error: the email link is no longer valid."
+  },
+  "authErrorNotConfigured": "Sign-in isn't set up in this build.",
+  "@authErrorNotConfigured": {
+    "description": "Sign-in error: the app build is missing configuration."
+  },
+  "authErrorUnknown": "Sign-in didn't work. Try again.",
+  "@authErrorUnknown": {
+    "description": "Generic sign-in error."
+  },
+  "authCallbackTitle": "Signing you in…",
+  "@authCallbackTitle": {
+    "description": "Shown while the app finishes sign-in from an email link."
+  },
+  "authCallbackFailedTitle": "Couldn't sign you in",
+  "@authCallbackFailedTitle": {
+    "description": "Heading when sign-in from an email link failed."
+  },
+  "backToSignInAction": "Back to sign-in",
+  "@backToSignInAction": {
+    "description": "Button that returns to the sign-in screen."
+  },
+  "signOutAction": "Sign out",
+  "@signOutAction": {
+    "description": "Button that signs out on this phone."
   }
 }

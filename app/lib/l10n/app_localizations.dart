@@ -321,6 +321,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong with the sticker. Try again.'**
   String get nfcErrorUnknown;
+
+  /// Heading of the sign-in screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to Plant NFC'**
+  String get signInTitle;
+
+  /// Explanation under the sign-in heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone in your household sees the same plants and waterings.'**
+  String get signInBody;
+
+  /// Screen reader label for the sign-in illustration.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant NFC'**
+  String get signInIllustrationLabel;
+
+  /// Button that signs in with a Google account.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get signInGoogleAction;
+
+  /// Separator between Google sign-in and email sign-in.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get signInOr;
+
+  /// Label of the email field on the sign-in screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get signInEmailLabel;
+
+  /// Button that sends a sign-in link by email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email me a sign-in link'**
+  String get signInEmailAction;
+
+  /// Heading shown after a sign-in link was sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email'**
+  String get signInLinkSentTitle;
+
+  /// Shown after a sign-in link was sent.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a sign-in link to {email}. Open it on this phone to sign in.'**
+  String signInLinkSentBody(String email);
+
+  /// Button that goes back to the email form.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a different email'**
+  String get signInDifferentEmailAction;
+
+  /// Sign-in error: no connection.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the server. Check your connection and try again.'**
+  String get authErrorNetwork;
+
+  /// Sign-in error: the email address can't be used.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address.'**
+  String get authErrorInvalidEmail;
+
+  /// Sign-in error: too many link requests.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Wait a minute, then try again.'**
+  String get authErrorRateLimited;
+
+  /// Sign-in error: the email link is no longer valid.
+  ///
+  /// In en, this message translates to:
+  /// **'This sign-in link can\'t be used. It may have expired, been used already, or been opened on another phone. Ask for a new one.'**
+  String get authErrorLinkInvalid;
+
+  /// Sign-in error: the app build is missing configuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in isn\'t set up in this build.'**
+  String get authErrorNotConfigured;
+
+  /// Generic sign-in error.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in didn\'t work. Try again.'**
+  String get authErrorUnknown;
+
+  /// Shown while the app finishes sign-in from an email link.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing you in…'**
+  String get authCallbackTitle;
+
+  /// Heading when sign-in from an email link failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign you in'**
+  String get authCallbackFailedTitle;
+
+  /// Button that returns to the sign-in screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign-in'**
+  String get backToSignInAction;
+
+  /// Button that signs out on this phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOutAction;
 }
 
 class _AppLocalizationsDelegate

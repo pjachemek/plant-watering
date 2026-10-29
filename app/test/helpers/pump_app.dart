@@ -1,13 +1,39 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plantnfc/app.dart';
+import 'package:plantnfc/core/config/app_config.dart';
+import 'package:plantnfc/core/config/config_provider.dart';
 import 'package:plantnfc/core/router/app_router.dart';
+import 'package:plantnfc/features/auth/data/auth_providers.dart';
+import 'package:plantnfc/features/auth/domain/auth_repository.dart';
+
+import 'fake_auth_repository.dart';
+
+/// The configuration widget tests run with: Google sign-in available.
+const AppConfig testConfig = AppConfig(
+  environment: 'dev',
+  apiBaseUrl: 'http://api.localhost/v1',
+  supabaseUrl: 'http://127.0.0.1:54321',
+  supabaseAnonKey: 'test-anon-key',
+  sentryDsn: '',
+  googleWebClientId: 'test-web-client.apps.googleusercontent.com',
+);
+
+/// As [testConfig], but a build without Google sign-in.
+const AppConfig testConfigWithoutGoogle = AppConfig(
+  environment: 'dev',
+  apiBaseUrl: 'http://api.localhost/v1',
+  supabaseUrl: 'http://127.0.0.1:54321',
+  supabaseAnonKey: 'test-anon-key',
+  sentryDsn: '',
+  googleWebClientId: '',
+);
 
 /// Pumps the real app at [location], with the given platform brightness and
 /// text scale, with optional provider [overrides], and returns the provider
-/// container.
+/// container. Signed in unless an [auth] repository says otherwise.
 Future<ProviderContainer> pumpApp(
   WidgetTester tester, {
   String location = AppRoutes.plants,
@@ -15,6 +41,8 @@ Future<ProviderContainer> pumpApp(
   double textScale = 1,
   Size size = const Size(390, 844),
   List<Override> overrides = const [],
+  AuthRepository? auth,
+  AppConfig config = testConfig,
 }) async {
   tester.platformDispatcher
     ..platformBrightnessTestValue = brightness
@@ -25,7 +53,13 @@ Future<ProviderContainer> pumpApp(
   addTearDown(tester.platformDispatcher.clearAllTestValues);
   addTearDown(tester.view.reset);
 
-  final container = ProviderContainer(overrides: overrides);
+  final container = ProviderContainer(
+    overrides: [
+      authRepositoryProvider.overrideWithValue(auth ?? FakeAuthRepository()),
+      appConfigProvider.overrideWithValue(config),
+      ...overrides,
+    ],
+  );
   addTearDown(container.dispose);
   container.read(appRouterProvider).go(location);
 

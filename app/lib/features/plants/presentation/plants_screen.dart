@@ -1,17 +1,19 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plantnfc/core/design/widgets/message_view.dart';
 import 'package:plantnfc/core/router/app_router.dart';
+import 'package:plantnfc/features/auth/data/auth_providers.dart';
 import 'package:plantnfc/l10n/app_localizations.dart';
 
 /// Home screen (FR-5). In M0 it only shows the empty state; the plant list
 /// arrives in M4.
-class PlantsScreen extends StatelessWidget {
+class PlantsScreen extends ConsumerWidget {
   const new({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
@@ -23,6 +25,13 @@ class PlantsScreen extends StatelessWidget {
               onPressed: () => context.push(AppRoutes.nfcSpike),
               icon: const Icon(Icons.nfc),
             ),
+          // Settings arrive with the household screens (M2 2.10); until then
+          // signing out sits here.
+          IconButton(
+            tooltip: l10n.signOutAction,
+            onPressed: () => ref.read(authRepositoryProvider).signOut(),
+            icon: const Icon(Icons.logout),
+          ),
         ],
       ),
       body: MessageView(
