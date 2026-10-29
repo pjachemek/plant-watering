@@ -197,7 +197,7 @@ final class SyncControllerProvider
   }
 }
 
-String _$syncControllerHash() => r'c47e0320967a5f97f05354c2e0ca4a947a4c2b92';
+String _$syncControllerHash() => r'6e2144807709b404fa9500b33b303c9d38de753a';
 
 /// Decides when the sync engine runs (AGENTS.md section 5, ADR-0025): on
 /// sign-in, at start and on resume, and soon after a change is queued. No

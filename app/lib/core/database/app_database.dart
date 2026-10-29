@@ -35,6 +35,29 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration =>
       MigrationStrategy(onCreate: (m) => m.createAll());
 
+  /// Removes one household and everything of it from this phone, its
+  /// unsent changes included: after leaving, nothing of it can reach the
+  /// server any more.
+  Future<void> removeHousehold(String householdId) => transaction(() async {
+    await (delete(
+      wateringEvents,
+    )..where((w) => w.householdId.equals(householdId))).go();
+    await (delete(tags)..where((t) => t.householdId.equals(householdId))).go();
+    await (delete(
+      plants,
+    )..where((p) => p.householdId.equals(householdId))).go();
+    await (delete(
+      members,
+    )..where((m) => m.householdId.equals(householdId))).go();
+    await (delete(
+      outbox,
+    )..where((o) => o.householdId.equals(householdId))).go();
+    await (delete(
+      syncStates,
+    )..where((s) => s.householdId.equals(householdId))).go();
+    await (delete(households)..where((h) => h.id.equals(householdId))).go();
+  });
+
   /// Removes every household's data, for signing out or leaving.
   Future<void> clearAll() => transaction(() async {
     for (final table in allTables) {

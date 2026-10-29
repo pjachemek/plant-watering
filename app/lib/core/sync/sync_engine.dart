@@ -60,7 +60,7 @@ class SyncEngine {
       final local = await _db.select(_db.households).get();
       for (final row in local.where((h) => !listed.contains(h.id))) {
         // Left, or removed elsewhere: its data goes too.
-        await _removeHousehold(row.id);
+        await _db.removeHousehold(row.id);
       }
       for (final h in households) {
         await _db.into(_db.households).insertOnConflictUpdate(_household(h));
@@ -185,7 +185,7 @@ class SyncEngine {
     switch (result) {
       case Failure(failure: ApiFailure.notFound):
         // No longer a member: nothing here can reach the server any more.
-        await _db.transaction(() => _removeHousehold(householdId));
+        await _db.transaction(() => _db.removeHousehold(householdId));
         return null;
       case Failure(:final failure):
         return failure;
@@ -350,30 +350,6 @@ class SyncEngine {
           (_) => const SyncStatesCompanion(fullPullNeeded: Value(true)),
         ),
       );
-
-  Future<void> _removeHousehold(String householdId) async {
-    await (_db.delete(
-      _db.wateringEvents,
-    )..where((w) => w.householdId.equals(householdId))).go();
-    await (_db.delete(
-      _db.tags,
-    )..where((t) => t.householdId.equals(householdId))).go();
-    await (_db.delete(
-      _db.plants,
-    )..where((p) => p.householdId.equals(householdId))).go();
-    await (_db.delete(
-      _db.members,
-    )..where((m) => m.householdId.equals(householdId))).go();
-    await (_db.delete(
-      _db.outbox,
-    )..where((o) => o.householdId.equals(householdId))).go();
-    await (_db.delete(
-      _db.syncStates,
-    )..where((s) => s.householdId.equals(householdId))).go();
-    await (_db.delete(
-      _db.households,
-    )..where((h) => h.id.equals(householdId))).go();
-  }
 
   HouseholdsCompanion _household(Household h) => HouseholdsCompanion.insert(
     id: h.id,
