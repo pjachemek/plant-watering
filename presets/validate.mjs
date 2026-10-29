@@ -93,9 +93,7 @@ function main() {
   let actual = "";
   try {
     // Git may check the file out with CRLF line endings on Windows.
-    actual = readFileSync(APP_COPY, "utf8").replace(/
-/g, "
-");
+    actual = readFileSync(APP_COPY, "utf8").replace(/\r\n/g, "\n");
   } catch {
     // Missing counts as stale.
   }
