@@ -51,4 +51,36 @@ void main() {
       expect(redirect('/sign-in?from=//evil.test', signedIn: true), '/');
     });
   });
+
+  group('update gate', () {
+    String? gate(
+      String location, {
+      required bool required,
+      required bool signedIn,
+    }) => appRedirect(
+      updateRequired: required,
+      signedIn: signedIn,
+      location: Uri.parse(location),
+    );
+
+    test('below the minimum every screen leads to the update screen', () {
+      expect(gate('/', required: true, signedIn: false), '/update');
+      expect(gate('/sign-in', required: true, signedIn: false), '/update');
+      expect(
+        gate('/p/AbCdEfGhIjKlMnOpQrStUv', required: true, signedIn: false),
+        '/update',
+      );
+      expect(gate('/update', required: true, signedIn: false), isNull);
+    });
+
+    test('ignores sign-in while blocked, and applies it afterwards', () {
+      expect(gate('/update', required: true, signedIn: false), isNull);
+      expect(gate('/', required: false, signedIn: false), '/sign-in');
+    });
+
+    test('once allowed, the update screen leads home and others stay', () {
+      expect(gate('/update', required: false, signedIn: false), '/');
+      expect(gate('/', required: false, signedIn: true), isNull);
+    });
+  });
 }

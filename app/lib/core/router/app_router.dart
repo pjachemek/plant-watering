@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plantnfc/core/router/not_found_screen.dart';
+import 'package:plantnfc/features/app_update/domain/version_policy.dart';
+import 'package:plantnfc/features/app_update/presentation/app_update_controller.dart';
+import 'package:plantnfc/features/app_update/presentation/update_required_screen.dart';
 import 'package:plantnfc/features/auth/data/auth_providers.dart';
 import 'package:plantnfc/features/auth/domain/auth_repository.dart';
 import 'package:plantnfc/features/auth/domain/auth_status.dart';
@@ -25,6 +28,9 @@ abstract final class AppRoutes {
   /// Sign-in (FR-7). `?from=` is where to go afterwards.
   static const String signIn = '/sign-in';
 
+  /// Blocking update screen (FR-10).
+  static const String updateRequired = '/update';
+
   /// Developer NFC test screen (M1). Registered in debug builds only.
   static const String nfcSpike = '/dev/nfc';
 }
@@ -32,12 +38,18 @@ abstract final class AppRoutes {
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
   final auth = ref.watch(authRepositoryProvider);
-  final refresh = _AuthRefresh(auth);
+  final refresh = _RouterRefresh(auth);
+  ref.listen(appUpdateControllerProvider, (_, _) => refresh.ping());
   final router = GoRouter(
     initialLocation: AppRoutes.plants,
     refreshListenable: refresh,
-    redirect: (context, state) =>
-        authRedirect(signedIn: auth.status is SignedIn, location: state.uri),
+    redirect: (context, state) => appRedirect(
+      updateRequired:
+          ref.read(appUpdateControllerProvider).status ==
+          AppUpdateStatus.required,
+      signedIn: auth.status is SignedIn,
+      location: state.uri,
+    ),
     routes: [
       GoRoute(
         path: AppRoutes.plants,
@@ -47,6 +59,10 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.tag,
         builder: (context, state) =>
             TagScreen(tagToken: state.pathParameters['tagToken']!),
+      ),
+      GoRoute(
+        path: AppRoutes.updateRequired,
+        builder: (context, state) => const UpdateRequiredScreen(),
       ),
       GoRoute(
         path: AppRoutes.signIn,
@@ -64,6 +80,23 @@ GoRouter appRouter(Ref ref) {
     ..onDispose(router.dispose)
     ..onDispose(refresh.dispose);
   return router;
+}
+
+/// Where to go instead of [location], or `null` to stay.
+///
+/// Below the minimum version every screen leads to the update screen, and
+/// nothing else is consulted, not even sign-in (FR-10). Once allowed again,
+/// the update screen leads home; then [authRedirect] applies.
+@visibleForTesting
+String? appRedirect({
+  required bool updateRequired,
+  required bool signedIn,
+  required Uri location,
+}) {
+  final onUpdate = location.path == AppRoutes.updateRequired;
+  if (updateRequired) return onUpdate ? null : AppRoutes.updateRequired;
+  if (onUpdate) return AppRoutes.plants;
+  return authRedirect(signedIn: signedIn, location: location);
 }
 
 /// Signed out: everything except sign-in leads to sign-in, remembering where
@@ -96,13 +129,16 @@ String? authRedirect({required bool signedIn, required Uri location}) {
       : AppRoutes.plants;
 }
 
-/// Tells the router to re-check [authRedirect] when the auth status changes.
-class _AuthRefresh extends ChangeNotifier {
+/// Tells the router to re-check its redirects when the auth status or the
+/// update status changes.
+class _RouterRefresh extends ChangeNotifier {
   new(AuthRepository auth) {
     _subscription = auth.statusChanges.listen((_) => notifyListeners());
   }
 
   late final StreamSubscription<AuthStatus> _subscription;
+
+  void ping() => notifyListeners();
 
   @override
   void dispose() {

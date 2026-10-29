@@ -187,5 +187,33 @@
   "signOutAction": "Sign out",
   "@signOutAction": {
     "description": "Button that signs out on this phone."
+  },
+  "updateRequiredTitle": "Update Plant NFC",
+  "@updateRequiredTitle": {
+    "description": "Heading of the blocking screen shown when this app version is no longer supported."
+  },
+  "updateRequiredBody": "This version is no longer supported. Update the app to keep using it. Everything saved on this phone is kept and syncs after the update.",
+  "@updateRequiredBody": {
+    "description": "Explanation on the blocking update screen."
+  },
+  "openStoreAction": "Open Google Play",
+  "@openStoreAction": {
+    "description": "Button that opens the app's store listing."
+  },
+  "storeOpenFailed": "Couldn't open Google Play. Update Plant NFC from the Play Store app.",
+  "@storeOpenFailed": {
+    "description": "Shown when the store listing can't be opened."
+  },
+  "updateAvailableMessage": "A new version of Plant NFC is available.",
+  "@updateAvailableMessage": {
+    "description": "Dismissible prompt shown when a newer app version is recommended."
+  },
+  "updateAction": "Update",
+  "@updateAction": {
+    "description": "Button in the update prompt that opens the store listing."
+  },
+  "dismissAction": "Dismiss",
+  "@dismissAction": {
+    "description": "Button that closes a prompt."
   }
 }

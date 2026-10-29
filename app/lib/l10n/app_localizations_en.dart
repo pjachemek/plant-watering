@@ -164,4 +164,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signOutAction => 'Sign out';
+
+  @override
+  String get updateRequiredTitle => 'Update Plant NFC';
+
+  @override
+  String get updateRequiredBody =>
+      'This version is no longer supported. Update the app to keep using it. Everything saved on this phone is kept and syncs after the update.';
+
+  @override
+  String get openStoreAction => 'Open Google Play';
+
+  @override
+  String get storeOpenFailed =>
+      'Couldn\'t open Google Play. Update Plant NFC from the Play Store app.';
+
+  @override
+  String get updateAvailableMessage =>
+      'A new version of Plant NFC is available.';
+
+  @override
+  String get updateAction => 'Update';
+
+  @override
+  String get dismissAction => 'Dismiss';
 }

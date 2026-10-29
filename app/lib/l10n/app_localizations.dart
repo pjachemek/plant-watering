@@ -375,6 +375,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out'**
   String get signOutAction;
+
+  /// Heading of the blocking screen shown when this app version is no longer supported.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Plant NFC'**
+  String get updateRequiredTitle;
+
+  /// Explanation on the blocking update screen.
+  ///
+  /// In en, this message translates to:
+  /// **'This version is no longer supported. Update the app to keep using it. Everything saved on this phone is kept and syncs after the update.'**
+  String get updateRequiredBody;
+
+  /// Button that opens the app's store listing.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Google Play'**
+  String get openStoreAction;
+
+  /// Shown when the store listing can't be opened.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open Google Play. Update Plant NFC from the Play Store app.'**
+  String get storeOpenFailed;
+
+  /// Dismissible prompt shown when a newer app version is recommended.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version of Plant NFC is available.'**
+  String get updateAvailableMessage;
+
+  /// Button in the update prompt that opens the store listing.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get updateAction;
+
+  /// Button that closes a prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get dismissAction;
 }
 
 class _AppLocalizationsDelegate

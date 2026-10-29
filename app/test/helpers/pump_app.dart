@@ -6,10 +6,13 @@ import 'package:plantnfc/app.dart';
 import 'package:plantnfc/core/config/app_config.dart';
 import 'package:plantnfc/core/config/config_provider.dart';
 import 'package:plantnfc/core/router/app_router.dart';
+import 'package:plantnfc/features/app_update/data/api_version_policy_source.dart';
+import 'package:plantnfc/features/app_update/domain/version_policy.dart';
 import 'package:plantnfc/features/auth/data/auth_providers.dart';
 import 'package:plantnfc/features/auth/domain/auth_repository.dart';
 
 import 'fake_auth_repository.dart';
+import 'fake_version_policy_source.dart';
 
 /// The configuration widget tests run with: Google sign-in available.
 const AppConfig testConfig = AppConfig(
@@ -42,6 +45,7 @@ Future<ProviderContainer> pumpApp(
   Size size = const Size(390, 844),
   List<Override> overrides = const [],
   AuthRepository? auth,
+  VersionPolicySource? versionPolicy,
   AppConfig config = testConfig,
 }) async {
   tester.platformDispatcher
@@ -57,6 +61,9 @@ Future<ProviderContainer> pumpApp(
     overrides: [
       authRepositoryProvider.overrideWithValue(auth ?? FakeAuthRepository()),
       appConfigProvider.overrideWithValue(config),
+      versionPolicySourceProvider.overrideWithValue(
+        versionPolicy ?? FakeVersionPolicySource(),
+      ),
       ...overrides,
     ],
   );
