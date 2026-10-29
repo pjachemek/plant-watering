@@ -1,5 +1,4 @@
 import 'package:gotrue/gotrue.dart';
-import 'package:plantnfc/core/config/app_config.dart';
 import 'package:plantnfc/core/config/config_provider.dart';
 import 'package:plantnfc/features/auth/data/google_id_token_source.dart';
 import 'package:plantnfc/features/auth/data/gotrue_auth_repository.dart';
@@ -19,11 +18,9 @@ AuthRepository authRepository(Ref ref) {
     client: GoTrueClient(
       url: '${config.supabaseUrl}/auth/v1',
       headers: {'apikey': config.supabaseAnonKey},
-      asyncStorage: store,
     ),
     store: store,
     google: PluginGoogleIdTokenSource(serverClientId: config.googleWebClientId),
-    emailRedirect: AppConfig.authRedirect,
   );
   ref.onDispose(repository.dispose);
   return repository;

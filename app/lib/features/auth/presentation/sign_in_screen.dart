@@ -2,61 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plantnfc/core/config/config_provider.dart';
 import 'package:plantnfc/core/design/tokens.dart';
-import 'package:plantnfc/core/design/widgets/message_view.dart';
+import 'package:plantnfc/features/auth/domain/auth_status.dart';
 import 'package:plantnfc/features/auth/presentation/auth_failure_text.dart';
 import 'package:plantnfc/features/auth/presentation/sign_in_controller.dart';
 import 'package:plantnfc/l10n/app_localizations.dart';
 
-/// Sign in with Google or an email link (FR-7). Leaving this screen is the
-/// router's job: it moves on as soon as someone is signed in.
-class SignInScreen extends ConsumerStatefulWidget {
+/// Sign in with an external provider (FR-7, ADR-0022): Google on Android,
+/// Apple too once iOS resumes. Leaving this screen is the router's job: it
+/// moves on as soon as someone is signed in.
+class SignInScreen extends ConsumerWidget {
   const new({super.key});
 
   @override
-  ConsumerState<SignInScreen> createState() => _SignInScreenState();
-}
-
-class _SignInScreenState extends ConsumerState<SignInScreen> {
-  final TextEditingController _email = TextEditingController();
-
-  @override
-  void dispose() {
-    _email.dispose();
-    super.dispose();
-  }
-
-  Future<void> _sendLink() =>
-      ref.read(signInControllerProvider.notifier).sendEmailLink(_email.text);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     final state = ref.watch(signInControllerProvider);
     final controller = ref.read(signInControllerProvider.notifier);
-    final sentTo = state.linkSentTo;
-
-    if (sentTo != null) {
-      return Scaffold(
-        body: MessageView(
-          icon: Icons.mark_email_read_outlined,
-          iconLabel: l10n.signInLinkSentTitle,
-          title: l10n.signInLinkSentTitle,
-          body: l10n.signInLinkSentBody(sentTo),
-          action: OutlinedButton(
-            onPressed: controller.reset,
-            child: Text(l10n.signInDifferentEmailAction),
-          ),
-        ),
-      );
-    }
-
-    final theme = Theme.of(context);
-    final busy = state.busy != null;
     final googleEnabled = ref
         .watch(appConfigProvider)
         .googleWebClientId
         .isNotEmpty;
-    final failure = state.failure;
+    // A build without any provider can't sign anyone in; say so up front.
+    final failure =
+        state.failure ?? (googleEnabled ? null : AuthFailure.notConfigured);
 
     return Scaffold(
       body: SafeArea(
@@ -67,74 +36,45 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               constraints: const BoxConstraints(
                 maxWidth: AppSizes.maxContentWidth,
               ),
-              child: AutofillGroup(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Icon(
-                      Icons.local_florist_outlined,
-                      size: AppSizes.iconXl,
-                      color: theme.colorScheme.primary,
-                      semanticLabel: l10n.signInIllustrationLabel,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Icon(
+                    Icons.local_florist_outlined,
+                    size: AppSizes.iconXl,
+                    color: theme.colorScheme.primary,
+                    semanticLabel: l10n.signInIllustrationLabel,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  Text(
+                    l10n.signInTitle,
+                    style: theme.textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    l10n.signInBody,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(height: AppSpacing.xl),
-                    Text(
-                      l10n.signInTitle,
-                      style: theme.textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      l10n.signInBody,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    if (failure != null) ...[
-                      _FailureMessage(text: authFailureText(l10n, failure)),
-                      const SizedBox(height: AppSpacing.lg),
-                    ],
-                    if (googleEnabled) ...[
-                      FilledButton.icon(
-                        onPressed: busy ? null : controller.signInWithGoogle,
-                        icon: state.busy == SignInStep.google
-                            ? const _ButtonProgress()
-                            : const Icon(Icons.account_circle_outlined),
-                        label: Text(l10n.signInGoogleAction),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      Text(
-                        l10n.signInOr,
-                        style: theme.textTheme.labelLarge,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                    ],
-                    TextField(
-                      controller: _email,
-                      enabled: !busy,
-                      keyboardType: TextInputType.emailAddress,
-                      autofillHints: const [AutofillHints.email],
-                      autocorrect: false,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendLink(),
-                      decoration: InputDecoration(
-                        labelText: l10n.signInEmailLabel,
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    FilledButton.tonalIcon(
-                      onPressed: busy ? null : _sendLink,
-                      icon: state.busy == SignInStep.email
-                          ? const _ButtonProgress()
-                          : const Icon(Icons.mail_outline),
-                      label: Text(l10n.signInEmailAction),
-                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  if (failure != null) ...[
+                    _FailureMessage(text: authFailureText(l10n, failure)),
+                    const SizedBox(height: AppSpacing.lg),
                   ],
-                ),
+                  if (googleEnabled)
+                    FilledButton.icon(
+                      onPressed: state.busy
+                          ? null
+                          : controller.signInWithGoogle,
+                      icon: state.busy
+                          ? const _ButtonProgress()
+                          : const Icon(Icons.account_circle_outlined),
+                      label: Text(l10n.signInGoogleAction),
+                    ),
+                ],
               ),
             ),
           ),

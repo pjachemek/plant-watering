@@ -6,30 +6,20 @@ import 'package:plantnfc/core/result/result.dart';
 import 'package:plantnfc/features/auth/data/google_id_token_source.dart';
 import 'package:plantnfc/features/auth/domain/auth_repository.dart';
 import 'package:plantnfc/features/auth/domain/auth_status.dart';
-import 'package:plantnfc/features/auth/domain/email_address.dart';
 
 /// [AuthRepository] on Supabase Auth through `gotrue`, the auth client alone
 /// rather than the full Supabase SDK: the app reaches data only through the
-/// API (ADR-0012, ADR-0021).
+/// API (ADR-0012, ADR-0021). Sign-in is through external providers only
+/// (ADR-0022).
 class GoTrueAuthRepository implements AuthRepository {
-  new({
-    required this._client,
-    required this._store,
-    required this._google,
-    required this._emailRedirect,
-  });
+  new({required this._client, required this._store, required this._google});
 
   /// Where the saved session lives in [GotrueAsyncStorage].
   static const String sessionKey = 'plantnfc.auth.session';
 
-  /// Supabase Auth's code for an address it won't send to (not in the
-  /// client's [ErrorCode] list).
-  static const String _emailAddressInvalid = 'email_address_invalid';
-
   final GoTrueClient _client;
   final GotrueAsyncStorage _store;
   final GoogleIdTokenSource _google;
-  final Uri _emailRedirect;
   final StreamController<AuthStatus> _changes =
       StreamController<AuthStatus>.broadcast();
   StreamSubscription<AuthState>? _subscription;
@@ -109,28 +99,6 @@ class GoTrueAuthRepository implements AuthRepository {
     }
   }
 
-  @override
-  Future<Result<void, AuthFailure>> sendEmailLink(String email) async {
-    final address = normalizeEmail(email);
-    if (address == null) return const Failure(AuthFailure.invalidEmail);
-    return await _attempt(
-      () => _client.signInWithOtp(
-        email: address,
-        emailRedirectTo: _emailRedirect.toString(),
-      ),
-      onRejected: AuthFailure.unknown,
-    );
-  }
-
-  @override
-  Future<Result<void, AuthFailure>> completeEmailLink(String code) =>
-      // Any refusal means the link can't be used: used, expired, or opened
-      // on another phone (whose code verifier we don't have).
-      _attempt(
-        () => _client.exchangeCodeForSession(code),
-        onRejected: AuthFailure.linkInvalid,
-      );
-
   /// Runs one Supabase Auth call and maps its errors.
   Future<Result<void, AuthFailure>> _attempt(
     Future<Object?> Function() call, {
@@ -154,12 +122,8 @@ class GoTrueAuthRepository implements AuthRepository {
         error.code == ErrorCode.overEmailSendRateLimit.code) {
       return AuthFailure.rateLimited;
     }
-    if (error.code == _emailAddressInvalid) {
-      return AuthFailure.invalidEmail;
-    }
-    // The project has this way of signing in turned off: retrying won't help.
-    if (error.code == ErrorCode.emailProviderDisabled.code ||
-        error.code == ErrorCode.providerDisabled.code) {
+    // The project has this provider turned off: retrying won't help.
+    if (error.code == ErrorCode.providerDisabled.code) {
       return AuthFailure.notConfigured;
     }
     return fallback;

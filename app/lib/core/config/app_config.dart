@@ -23,13 +23,6 @@ class AppConfig {
     googleWebClientId: String.fromEnvironment('GOOGLE_WEB_CLIENT_ID'),
   );
 
-  /// Where email sign-in links land: a verified App Link, so the link opens
-  /// this app, and only on the phone that asked for it (ADR-0021). Must be in
-  /// the Supabase project's redirect URL allow list.
-  static final Uri authRedirect = Uri.parse(
-    'https://plants.pampait.pl/auth/callback',
-  );
-
   /// `dev`, `staging` or `production`.
   final String environment;
 
@@ -43,8 +36,8 @@ class AppConfig {
   final String supabaseAnonKey;
 
   /// The Google OAuth "Web" client id that Supabase accepts ID tokens for.
-  /// Public by design (every Google sign-in app ships one). Empty hides
-  /// Google sign-in.
+  /// Public by design (every Google sign-in app ships one). Empty leaves
+  /// the build without a way to sign in, which the sign-in screen says.
   final String googleWebClientId;
 
   /// Empty disables error reporting (the default for local runs and tests).

@@ -17,14 +17,10 @@ class FakeAuthRepository implements AuthRepository {
       StreamController<AuthStatus>.broadcast();
 
   Result<void, AuthFailure> googleResult = const Success(null);
-  Result<void, AuthFailure> emailResult = const Success(null);
-  Result<void, AuthFailure> linkResult = const Success(null);
 
   /// Completes the next sign-in step only when set and completed by the test.
   Completer<void>? hold;
 
-  final List<String> emailsSent = [];
-  final List<String> codesUsed = [];
   int signOuts = 0;
 
   @override
@@ -42,28 +38,15 @@ class FakeAuthRepository implements AuthRepository {
   Future<void> restore() async {}
 
   Future<Result<void, AuthFailure>> _step(
-    Result<void, AuthFailure> result, {
-    bool signsIn = true,
-  }) async {
+    Result<void, AuthFailure> result,
+  ) async {
     await hold?.future;
-    if (result.isSuccess && signsIn) setStatus(const SignedIn(userId));
+    if (result.isSuccess) setStatus(const SignedIn(userId));
     return result;
   }
 
   @override
   Future<Result<void, AuthFailure>> signInWithGoogle() => _step(googleResult);
-
-  @override
-  Future<Result<void, AuthFailure>> sendEmailLink(String email) {
-    emailsSent.add(email);
-    return _step(emailResult, signsIn: false);
-  }
-
-  @override
-  Future<Result<void, AuthFailure>> completeEmailLink(String code) {
-    codesUsed.add(code);
-    return _step(linkResult);
-  }
 
   @override
   Future<String?> accessToken() async =>

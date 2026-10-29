@@ -24,7 +24,7 @@ void main() {
 
       expect(find.text('Sign in to Plant NFC'), findsOneWidget);
       expect(find.text('Continue with Google'), findsOneWidget);
-      expect(find.text('Email me a sign-in link'), findsOneWidget);
+      expect(find.textContaining('email', findRichText: true), findsNothing);
       expect(find.text('Plants'), findsNothing);
     });
 
@@ -94,7 +94,7 @@ void main() {
       },
     );
 
-    testWidgets('shows progress and disables both ways while signing in', (
+    testWidgets('shows progress and disables the button while signing in', (
       tester,
     ) async {
       auth.hold = Completer<void>();
@@ -104,8 +104,13 @@ void main() {
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      final email = tester.widget<TextField>(find.byType(TextField));
-      expect(email.enabled, isFalse);
+      final button = tester.widget<ButtonStyleButton>(
+        find.ancestor(
+          of: find.text('Continue with Google'),
+          matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+        ),
+      );
+      expect(button.onPressed, isNull);
 
       auth.hold!.complete();
       await tester.pumpAndSettle();
@@ -135,40 +140,13 @@ void main() {
       expect(find.textContaining("Can't reach the server"), findsOneWidget);
     });
 
-    testWidgets('sends an email link and says where it went', (tester) async {
-      await pumpApp(tester, auth: auth);
-
-      await tester.enterText(find.byType(TextField), 'ann@example.com');
-      await tester.tap(find.text('Email me a sign-in link'));
-      await tester.pumpAndSettle();
-
-      expect(auth.emailsSent, ['ann@example.com']);
-      expect(find.text('Check your email'), findsOneWidget);
-      expect(find.textContaining('ann@example.com'), findsOneWidget);
-
-      await tester.tap(find.text('Use a different email'));
-      await tester.pumpAndSettle();
-      expect(find.text('Email me a sign-in link'), findsOneWidget);
-    });
-
-    testWidgets('reports an address that cannot be used', (tester) async {
-      auth.emailResult = const Failure(AuthFailure.invalidEmail);
-      await pumpApp(tester, auth: auth);
-
-      await tester.enterText(find.byType(TextField), 'ann');
-      await tester.testTextInput.receiveAction(TextInputAction.send);
-      await tester.pumpAndSettle();
-
-      expect(find.text('Enter a valid email address.'), findsOneWidget);
-    });
-
-    testWidgets('hides Google sign-in when the build has no client id', (
+    testWidgets('says sign-in is not set up when the build has no provider', (
       tester,
     ) async {
       await pumpApp(tester, auth: auth, config: testConfigWithoutGoogle);
 
       expect(find.text('Continue with Google'), findsNothing);
-      expect(find.text('Email me a sign-in link'), findsOneWidget);
+      expect(find.text("Sign-in isn't set up in this build."), findsOneWidget);
     });
 
     for (final brightness in Brightness.values) {
@@ -194,13 +172,8 @@ void main() {
       );
 
       expect(tester.takeException(), isNull);
-      await tester.scrollUntilVisible(
-        find.text('Email me a sign-in link'),
-        50,
-        // The page, not the email field's own scrollable.
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Email me a sign-in link'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Continue with Google'), 50);
+      expect(find.text('Continue with Google'), findsOneWidget);
     });
   });
 

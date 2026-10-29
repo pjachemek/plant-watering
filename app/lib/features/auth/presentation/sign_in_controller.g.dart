@@ -8,18 +8,21 @@ part of 'sign_in_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Sign in with Google or an email link (FR-7). Success needs no state here:
-/// the router leaves the sign-in screen when the auth status changes.
+/// Sign in with an external provider (FR-7, ADR-0022). Success needs no
+/// state here: the router leaves the sign-in screen when the auth status
+/// changes.
 
 @ProviderFor(SignInController)
 final signInControllerProvider = SignInControllerProvider._();
 
-/// Sign in with Google or an email link (FR-7). Success needs no state here:
-/// the router leaves the sign-in screen when the auth status changes.
+/// Sign in with an external provider (FR-7, ADR-0022). Success needs no
+/// state here: the router leaves the sign-in screen when the auth status
+/// changes.
 final class SignInControllerProvider
     extends $NotifierProvider<SignInController, SignInState> {
-  /// Sign in with Google or an email link (FR-7). Success needs no state here:
-  /// the router leaves the sign-in screen when the auth status changes.
+  /// Sign in with an external provider (FR-7, ADR-0022). Success needs no
+  /// state here: the router leaves the sign-in screen when the auth status
+  /// changes.
   SignInControllerProvider._()
     : super(
         from: null,
@@ -47,10 +50,11 @@ final class SignInControllerProvider
   }
 }
 
-String _$signInControllerHash() => r'599e4cda5545183efc1ad4fede3db69c08f11b21';
+String _$signInControllerHash() => r'0f89d333dd6d7b866b99c6eb3e64e61c6fd9a0f7';
 
-/// Sign in with Google or an email link (FR-7). Success needs no state here:
-/// the router leaves the sign-in screen when the auth status changes.
+/// Sign in with an external provider (FR-7, ADR-0022). Success needs no
+/// state here: the router leaves the sign-in screen when the auth status
+/// changes.
 
 abstract class _$SignInController extends $Notifier<SignInState> {
   SignInState build();

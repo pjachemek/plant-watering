@@ -27,9 +27,8 @@ void main() {
       );
     });
 
-    test('leaves the sign-in screens alone', () {
+    test('leaves the sign-in screen alone', () {
       expect(redirect('/sign-in', signedIn: false), isNull);
-      expect(redirect('/auth/callback?code=x', signedIn: false), isNull);
     });
   });
 
@@ -45,7 +44,6 @@ void main() {
         '/p/AbCdEfGhIjKlMnOpQrStUv',
       );
       expect(redirect('/sign-in', signedIn: true), '/');
-      expect(redirect('/auth/callback?code=x', signedIn: true), '/');
     });
 
     test('never follows a destination outside the app', () {

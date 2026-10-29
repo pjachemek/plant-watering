@@ -45,16 +45,11 @@ enum AuthFailure {
   /// No connection, or the server didn't answer. Retry later.
   network,
 
-  /// The email address isn't one we can send to.
-  invalidEmail,
-
-  /// Too many link requests; wait before asking again.
+  /// Too many attempts; wait before trying again.
   rateLimited,
 
-  /// The email link was used, expired, or opened on another phone.
-  linkInvalid,
-
-  /// The build lacks configuration (for example the Google client id).
+  /// The build or the backend lacks configuration for this provider (for
+  /// example no Google client id, or the provider turned off).
   notConfigured,
 
   /// Anything else.

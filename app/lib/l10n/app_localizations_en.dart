@@ -149,54 +149,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInGoogleAction => 'Continue with Google';
 
   @override
-  String get signInOr => 'or';
-
-  @override
-  String get signInEmailLabel => 'Email address';
-
-  @override
-  String get signInEmailAction => 'Email me a sign-in link';
-
-  @override
-  String get signInLinkSentTitle => 'Check your email';
-
-  @override
-  String signInLinkSentBody(String email) {
-    return 'We sent a sign-in link to $email. Open it on this phone to sign in.';
-  }
-
-  @override
-  String get signInDifferentEmailAction => 'Use a different email';
-
-  @override
   String get authErrorNetwork =>
       'Can\'t reach the server. Check your connection and try again.';
-
-  @override
-  String get authErrorInvalidEmail => 'Enter a valid email address.';
 
   @override
   String get authErrorRateLimited =>
       'Too many attempts. Wait a minute, then try again.';
 
   @override
-  String get authErrorLinkInvalid =>
-      'This sign-in link can\'t be used. It may have expired, been used already, or been opened on another phone. Ask for a new one.';
-
-  @override
   String get authErrorNotConfigured => 'Sign-in isn\'t set up in this build.';
 
   @override
   String get authErrorUnknown => 'Sign-in didn\'t work. Try again.';
-
-  @override
-  String get authCallbackTitle => 'Signing you in…';
-
-  @override
-  String get authCallbackFailedTitle => 'Couldn\'t sign you in';
-
-  @override
-  String get backToSignInAction => 'Back to sign-in';
 
   @override
   String get signOutAction => 'Sign out';

@@ -1,8 +1,8 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gotrue/gotrue.dart';
 
-/// Keychain / Keystore-backed storage for the session and the sign-in link's
-/// code verifier (NFR Security: session tokens in Keystore; ADR-0021).
+/// Keychain / Keystore-backed storage for the session (NFR Security: session
+/// tokens in Keystore; ADR-0021).
 ///
 /// On Android the values are encrypted with a key held in the Android
 /// Keystore. If that key is lost (for example after a device restore), the

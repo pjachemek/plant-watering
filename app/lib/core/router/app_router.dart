@@ -6,7 +6,6 @@ import 'package:plantnfc/core/router/not_found_screen.dart';
 import 'package:plantnfc/features/auth/data/auth_providers.dart';
 import 'package:plantnfc/features/auth/domain/auth_repository.dart';
 import 'package:plantnfc/features/auth/domain/auth_status.dart';
-import 'package:plantnfc/features/auth/presentation/auth_callback_screen.dart';
 import 'package:plantnfc/features/auth/presentation/sign_in_screen.dart';
 import 'package:plantnfc/features/plants/presentation/plants_screen.dart';
 import 'package:plantnfc/features/scan/presentation/nfc_spike_screen.dart';
@@ -25,10 +24,6 @@ abstract final class AppRoutes {
 
   /// Sign-in (FR-7). `?from=` is where to go afterwards.
   static const String signIn = '/sign-in';
-
-  /// Target of email sign-in links; must match `AppConfig.authRedirect` and
-  /// the App Link filter in AndroidManifest.xml (ADR-0021).
-  static const String authCallback = '/auth/callback';
 
   /// Developer NFC test screen (M1). Registered in debug builds only.
   static const String nfcSpike = '/dev/nfc';
@@ -57,11 +52,6 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.signIn,
         builder: (context, state) => const SignInScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.authCallback,
-        builder: (context, state) =>
-            AuthCallbackScreen(code: state.uri.queryParameters['code']),
-      ),
       if (kDebugMode)
         GoRoute(
           path: AppRoutes.nfcSpike,
@@ -78,12 +68,12 @@ GoRouter appRouter(Ref ref) {
 
 /// Signed out: everything except sign-in leads to sign-in, remembering where
 /// it was going, so a tag scanned before signing in still opens its plant.
-/// Signed in: the sign-in screens lead on. A signed-in cold start from a tag
+/// Signed in: the sign-in screen leads on. A signed-in cold start from a tag
 /// goes straight to it (AGENTS.md section 5).
 @visibleForTesting
 String? authRedirect({required bool signedIn, required Uri location}) {
   final path = location.path;
-  final onSignIn = path == AppRoutes.signIn || path == AppRoutes.authCallback;
+  final onSignIn = path == AppRoutes.signIn;
   if (!signedIn) {
     if (onSignIn) return null;
     // Path and query only: an app link arrives as the full URL

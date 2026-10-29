@@ -11,7 +11,6 @@ import 'package:plantnfc/features/auth/data/gotrue_auth_repository.dart';
 import 'package:plantnfc/features/auth/domain/auth_status.dart';
 
 const String userId = '0192f3c4-5a6b-7c8d-9e0f-1a2b3c4d5e71';
-final Uri redirect = Uri.parse('https://plants.pampait.pl/auth/callback');
 
 /// An unsigned JWT with an expiry: the client only reads `exp`.
 String accessToken({Duration validFor = const Duration(hours: 1)}) {
@@ -106,12 +105,10 @@ void main() {
       client: GoTrueClient(
         url: 'http://auth.test/auth/v1',
         httpClient: server.client,
-        asyncStorage: store,
         autoRefreshToken: false,
       ),
       store: store,
       google: google,
-      emailRedirect: redirect,
     );
   });
 
@@ -196,101 +193,6 @@ void main() {
     });
   });
 
-  group('email link', () {
-    test(
-      'rejects an address that cannot be one, without calling out',
-      () async {
-        expect(
-          await repository.sendEmailLink('not an email'),
-          const Failure<void, AuthFailure>(AuthFailure.invalidEmail),
-        );
-        expect(server.requests, isEmpty);
-      },
-    );
-
-    test('sends a PKCE link to this app and keeps the verifier', () async {
-      server.respond = (_) async => FakeServer.json(<String, Object>{});
-
-      final result = await repository.sendEmailLink('  Ann@Example.com ');
-
-      expect(result, const Success<void, AuthFailure>(null));
-      final request = server.requests.single;
-      expect(request.url.path, '/auth/v1/otp');
-      expect(request.url.queryParameters['redirect_to'], redirect.toString());
-      expect(server.bodyOf(0), containsPair('email', 'ann@example.com'));
-      expect(server.bodyOf(0)['code_challenge'], isA<String>());
-      expect(store.values.keys.single, endsWith('code-verifier'));
-    });
-
-    test('maps rate limits, refusals and lost connections', () async {
-      server.respond = (_) async => FakeServer.json({
-        'code': 429,
-        'error_code': 'over_email_send_rate_limit',
-        'msg': 'Too many',
-      }, 429);
-      expect(
-        await repository.sendEmailLink('ann@example.com'),
-        const Failure<void, AuthFailure>(AuthFailure.rateLimited),
-      );
-
-      server.respond = (_) async => FakeServer.json({
-        'code': 400,
-        'error_code': 'email_address_invalid',
-        'msg': 'Invalid',
-      }, 400);
-      expect(
-        await repository.sendEmailLink('ann@example.com'),
-        const Failure<void, AuthFailure>(AuthFailure.invalidEmail),
-      );
-
-      server.respond = (_) async => FakeServer.json({
-        'code': 422,
-        'error_code': 'email_provider_disabled',
-        'msg': 'Email logins are disabled',
-      }, 422);
-      expect(
-        await repository.sendEmailLink('ann@example.com'),
-        const Failure<void, AuthFailure>(AuthFailure.notConfigured),
-      );
-
-      server.respond = (_) async => throw http.ClientException('offline');
-      expect(
-        await repository.sendEmailLink('ann@example.com'),
-        const Failure<void, AuthFailure>(AuthFailure.network),
-      );
-    });
-
-    test('completes sign-in with the code from the link', () async {
-      server.respond = (request) async => request.url.path.endsWith('/otp')
-          ? FakeServer.json(<String, Object>{})
-          : FakeServer.json(sessionJson());
-      await repository.restore();
-      await repository.sendEmailLink('ann@example.com');
-
-      final result = await repository.completeEmailLink('one-time-code');
-      await settle();
-
-      expect(result, const Success<void, AuthFailure>(null));
-      expect(server.requests.last.url.queryParameters['grant_type'], 'pkce');
-      expect(server.bodyOf(1), containsPair('auth_code', 'one-time-code'));
-      expect(repository.status, const SignedIn(userId));
-    });
-
-    test('reports any refused code as an unusable link', () async {
-      server.respond = (_) async => FakeServer.json({
-        'code': 404,
-        'error_code': 'flow_state_not_found',
-        'msg': 'Invalid flow state',
-      }, 404);
-      store.values['supabase.auth.token-code-verifier'] = 'verifier';
-
-      expect(
-        await repository.completeEmailLink('used-code'),
-        const Failure<void, AuthFailure>(AuthFailure.linkInvalid),
-      );
-    });
-  });
-
   group('session', () {
     test('has no access token when signed out', () async {
       await repository.restore();
@@ -305,13 +207,11 @@ void main() {
       final client = GoTrueClient(
         url: 'http://auth.test/auth/v1',
         httpClient: server.client,
-        asyncStorage: store,
       );
       final offline = GoTrueAuthRepository(
         client: client,
         store: store,
         google: google,
-        emailRedirect: redirect,
       );
       addTearDown(() async {
         client.stopAutoRefresh();
