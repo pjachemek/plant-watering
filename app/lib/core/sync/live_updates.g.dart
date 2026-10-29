@@ -98,7 +98,7 @@ final class LiveUpdatesProvider
   }
 }
 
-String _$liveUpdatesHash() => r'ff5c624ca6cb8d889512f1ccbd53348b284ac0cf';
+String _$liveUpdatesHash() => r'47bbfe40a14ed524057020deeaa4918ae2d99c54';
 
 /// The live-updates connection (ADR-0013, ADR-0020, ADR-0026): while the app
 /// is open, signed in and in a household, one WebSocket to that household's

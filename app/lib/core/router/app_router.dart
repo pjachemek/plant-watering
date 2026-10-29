@@ -13,6 +13,7 @@ import 'package:plantnfc/features/auth/presentation/sign_in_screen.dart';
 import 'package:plantnfc/features/household/presentation/household_forms.dart';
 import 'package:plantnfc/features/household/presentation/household_screen.dart';
 import 'package:plantnfc/features/plants/presentation/plants_screen.dart';
+import 'package:plantnfc/features/plants/presentation/sync_test_screen.dart';
 import 'package:plantnfc/features/scan/presentation/nfc_spike_screen.dart';
 import 'package:plantnfc/features/scan/presentation/tag_screen.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -46,6 +47,9 @@ abstract final class AppRoutes {
 
   /// Developer NFC test screen (M1). Registered in debug builds only.
   static const String nfcSpike = '/dev/nfc';
+
+  /// Developer sync test screen (M2 exit test). Debug builds only.
+  static const String syncTest = '/dev/sync';
 }
 
 @Riverpod(keepAlive: true)
@@ -99,11 +103,16 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.signIn,
         builder: (context, state) => const SignInScreen(),
       ),
-      if (kDebugMode)
+      if (kDebugMode) ...[
         GoRoute(
           path: AppRoutes.nfcSpike,
           builder: (context, state) => const NfcSpikeScreen(),
         ),
+        GoRoute(
+          path: AppRoutes.syncTest,
+          builder: (context, state) => const SyncTestScreen(),
+        ),
+      ],
     ],
     errorBuilder: (context, state) => const NotFoundScreen(),
   );
