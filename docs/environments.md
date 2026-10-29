@@ -38,8 +38,8 @@ Dev project values:
 | Item | Value |
 | --- | --- |
 | Debug key SHA-1 | `34:82:57:8F:30:1A:DD:B7:A3:44:75:23:BC:62:8B:BA:F7:E6:2F:2E` |
-| Web client id | _pending_ |
-| Android client id (debug key) | _pending_ |
+| Web client id | `720190702365-3lcvrnkro5r6ghme7t4eeojfqr8g12tk.apps.googleusercontent.com` |
+| Android client id (debug key) | `720190702365-a9pa1s1uclvd5130j8mme9398ls8etqq.apps.googleusercontent.com` |
 
 ## Applying the schema (product owner, once per project)
 
