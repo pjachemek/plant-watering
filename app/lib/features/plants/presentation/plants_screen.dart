@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plantnfc/core/design/widgets/message_view.dart';
 import 'package:plantnfc/core/router/app_router.dart';
-import 'package:plantnfc/features/auth/data/auth_providers.dart';
+import 'package:plantnfc/features/auth/presentation/sign_out.dart';
 import 'package:plantnfc/features/household/data/api_household_repository.dart';
 import 'package:plantnfc/features/household/presentation/household_forms.dart';
 import 'package:plantnfc/l10n/app_localizations.dart';
@@ -23,12 +23,18 @@ class PlantsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.plantsTitle),
         actions: [
-          if (kDebugMode)
+          if (kDebugMode) ...[
             IconButton(
               tooltip: l10n.nfcSpikeOpenAction,
               onPressed: () => context.push(AppRoutes.nfcSpike),
               icon: const Icon(Icons.nfc),
             ),
+            IconButton(
+              tooltip: l10n.syncTestOpenAction,
+              onPressed: () => context.push(AppRoutes.syncTest),
+              icon: const Icon(Icons.sync),
+            ),
+          ],
           if (hasHousehold)
             IconButton(
               tooltip: l10n.householdTitle,
@@ -37,7 +43,7 @@ class PlantsScreen extends ConsumerWidget {
             ),
           IconButton(
             tooltip: l10n.signOutAction,
-            onPressed: () => ref.read(authRepositoryProvider).signOut(),
+            onPressed: () => confirmSignOut(context, ref),
             icon: const Icon(Icons.logout),
           ),
         ],

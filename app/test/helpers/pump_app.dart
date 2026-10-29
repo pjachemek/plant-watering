@@ -12,6 +12,7 @@ import 'package:plantnfc/features/app_update/data/api_version_policy_source.dart
 import 'package:plantnfc/features/app_update/domain/version_policy.dart';
 import 'package:plantnfc/features/auth/data/auth_providers.dart';
 import 'package:plantnfc/features/auth/domain/auth_repository.dart';
+import 'package:plantnfc/features/auth/presentation/sign_out.dart';
 import 'package:plantnfc/features/household/data/api_household_repository.dart';
 import 'package:plantnfc/features/household/domain/household.dart';
 
@@ -41,12 +42,15 @@ const AppConfig testConfigWithoutGoogle = AppConfig(
 
 /// The overrides every widget test needs: a fake sign-in (signed in unless
 /// [auth] says otherwise), [config], an up-to-date version policy, and no
-/// syncing or database. [overrides] come last and win.
+/// syncing or database. [overrides] must not repeat a provider set here
+/// (Riverpod refuses that); use the parameters instead.
 List<Override> testOverrides({
   AuthRepository? auth,
   VersionPolicySource? versionPolicy,
   HouseholdRepository? households,
   AppConfig config = testConfig,
+  int outboxSize = 0,
+  Future<void> Function()? signOut,
   List<Override> overrides = const [],
 }) => [
   authRepositoryProvider.overrideWithValue(auth ?? FakeAuthRepository()),
@@ -59,7 +63,11 @@ List<Override> testOverrides({
   ),
   // Widget tests don't sync; the engine has its own tests.
   syncRunnerProvider.overrideWithValue((_) async => null),
-  outboxSizeProvider.overrideWith((ref) => const Stream<int>.empty()),
+  outboxSizeProvider.overrideWith((ref) => Stream.value(outboxSize)),
+  // Signing out without a database: only the (fake) sign-in.
+  signOutAndClearProvider.overrideWith(
+    (ref) => signOut ?? () => ref.read(authRepositoryProvider).signOut(),
+  ),
   // No socket in widget tests; live updates have their own tests.
   liveUpdatesProvider.overrideWith(_NoLiveUpdates.new),
   ...overrides,
@@ -79,6 +87,8 @@ Future<ProviderContainer> pumpApp(
   VersionPolicySource? versionPolicy,
   HouseholdRepository? households,
   AppConfig config = testConfig,
+  int outboxSize = 0,
+  Future<void> Function()? signOut,
 }) async {
   tester.platformDispatcher
     ..platformBrightnessTestValue = brightness
@@ -94,6 +104,8 @@ Future<ProviderContainer> pumpApp(
       auth: auth,
       versionPolicy: versionPolicy,
       households: households,
+      outboxSize: outboxSize,
+      signOut: signOut,
       config: config,
       overrides: overrides,
     ),

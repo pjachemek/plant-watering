@@ -373,5 +373,82 @@
   "householdErrorUnknown": "Something went wrong. Try again.",
   "@householdErrorUnknown": {
     "description": "Generic household error."
+  },
+  "signOutPendingTitle": "Sign out with unsent changes?",
+  "@signOutPendingTitle": {
+    "description": "Title when signing out while changes haven't reached the server."
+  },
+  "signOutPendingBody": "{count, plural, =1{1 change made on this phone hasn't reached the server yet. If you sign out now, it will be lost.} other{{count} changes made on this phone haven't reached the server yet. If you sign out now, they will be lost.}}",
+  "@signOutPendingBody": {
+    "description": "Warning before signing out with unsent changes.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "signOutAnywayAction": "Sign out anyway",
+  "@signOutAnywayAction": {
+    "description": "Button that signs out despite unsent changes."
+  },
+  "syncTestTitle": "Sync test",
+  "@syncTestTitle": {
+    "description": "Title of the developer screen for testing sync between phones. Debug builds only."
+  },
+  "syncTestOpenAction": "Sync test",
+  "@syncTestOpenAction": {
+    "description": "Developer menu button that opens the sync test screen. Debug builds only."
+  },
+  "syncTestStatus": "Sync: {sync} · Live: {live} · Waiting to send: {queued}",
+  "@syncTestStatus": {
+    "description": "Status line on the sync test screen.",
+    "placeholders": {
+      "sync": {
+        "type": "String"
+      },
+      "live": {
+        "type": "String"
+      },
+      "queued": {
+        "type": "int"
+      }
+    }
+  },
+  "syncTestNoHousehold": "Create or join a household first.",
+  "@syncTestNoHousehold": {
+    "description": "Shown on the sync test screen without a household."
+  },
+  "syncTestAddPlant": "Add test plant",
+  "@syncTestAddPlant": {
+    "description": "Button that adds a test plant."
+  },
+  "syncTestNeverWatered": "Never watered",
+  "@syncTestNeverWatered": {
+    "description": "Shown for a plant without waterings."
+  },
+  "syncTestLastWatered": "Last watered {time} by {name}",
+  "@syncTestLastWatered": {
+    "description": "Last watering of a plant on the sync test screen.",
+    "placeholders": {
+      "time": {
+        "type": "DateTime",
+        "format": "Hms"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncTestWater": "Water",
+  "@syncTestWater": {
+    "description": "Button that logs a watering."
+  },
+  "syncTestUndo": "Undo",
+  "@syncTestUndo": {
+    "description": "Button that undoes the last watering."
+  },
+  "syncTestSomeone": "someone",
+  "@syncTestSomeone": {
+    "description": "Name used when the person who watered isn't known on this phone."
   }
 }

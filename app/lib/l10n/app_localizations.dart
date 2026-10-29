@@ -627,6 +627,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Try again.'**
   String get householdErrorUnknown;
+
+  /// Title when signing out while changes haven't reached the server.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out with unsent changes?'**
+  String get signOutPendingTitle;
+
+  /// Warning before signing out with unsent changes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 change made on this phone hasn\'t reached the server yet. If you sign out now, it will be lost.} other{{count} changes made on this phone haven\'t reached the server yet. If you sign out now, they will be lost.}}'**
+  String signOutPendingBody(int count);
+
+  /// Button that signs out despite unsent changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out anyway'**
+  String get signOutAnywayAction;
+
+  /// Title of the developer screen for testing sync between phones. Debug builds only.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync test'**
+  String get syncTestTitle;
+
+  /// Developer menu button that opens the sync test screen. Debug builds only.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync test'**
+  String get syncTestOpenAction;
+
+  /// Status line on the sync test screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync: {sync} · Live: {live} · Waiting to send: {queued}'**
+  String syncTestStatus(String sync, String live, int queued);
+
+  /// Shown on the sync test screen without a household.
+  ///
+  /// In en, this message translates to:
+  /// **'Create or join a household first.'**
+  String get syncTestNoHousehold;
+
+  /// Button that adds a test plant.
+  ///
+  /// In en, this message translates to:
+  /// **'Add test plant'**
+  String get syncTestAddPlant;
+
+  /// Shown for a plant without waterings.
+  ///
+  /// In en, this message translates to:
+  /// **'Never watered'**
+  String get syncTestNeverWatered;
+
+  /// Last watering of a plant on the sync test screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Last watered {time} by {name}'**
+  String syncTestLastWatered(DateTime time, String name);
+
+  /// Button that logs a watering.
+  ///
+  /// In en, this message translates to:
+  /// **'Water'**
+  String get syncTestWater;
+
+  /// Button that undoes the last watering.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get syncTestUndo;
+
+  /// Name used when the person who watered isn't known on this phone.
+  ///
+  /// In en, this message translates to:
+  /// **'someone'**
+  String get syncTestSomeone;
 }
 
 class _AppLocalizationsDelegate

@@ -310,4 +310,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get householdErrorUnknown => 'Something went wrong. Try again.';
+
+  @override
+  String get signOutPendingTitle => 'Sign out with unsent changes?';
+
+  @override
+  String signOutPendingBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count changes made on this phone haven\'t reached the server yet. If you sign out now, they will be lost.',
+      one: '1 change made on this phone hasn\'t reached the server yet. If you sign out now, it will be lost.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get signOutAnywayAction => 'Sign out anyway';
+
+  @override
+  String get syncTestTitle => 'Sync test';
+
+  @override
+  String get syncTestOpenAction => 'Sync test';
+
+  @override
+  String syncTestStatus(String sync, String live, int queued) {
+    return 'Sync: $sync · Live: $live · Waiting to send: $queued';
+  }
+
+  @override
+  String get syncTestNoHousehold => 'Create or join a household first.';
+
+  @override
+  String get syncTestAddPlant => 'Add test plant';
+
+  @override
+  String get syncTestNeverWatered => 'Never watered';
+
+  @override
+  String syncTestLastWatered(DateTime time, String name) {
+    final intl.DateFormat timeDateFormat = intl.DateFormat.Hms(localeName);
+    final String timeString = timeDateFormat.format(time);
+
+    return 'Last watered $timeString by $name';
+  }
+
+  @override
+  String get syncTestWater => 'Water';
+
+  @override
+  String get syncTestUndo => 'Undo';
+
+  @override
+  String get syncTestSomeone => 'someone';
 }
