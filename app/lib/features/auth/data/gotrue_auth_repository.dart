@@ -63,7 +63,10 @@ class GoTrueAuthRepository implements AuthRepository {
   }
 
   void _onAuthChange(AuthState state) {
-    final session = state.session;
+    // Events can arrive after a newer change (gotrue reports signedOut only
+    // after clearing its storage), so act on the client's current session,
+    // never on the session the event carries.
+    final session = _client.currentSession;
     const saves = {
       AuthChangeEvent.signedIn,
       AuthChangeEvent.tokenRefreshed,
@@ -73,7 +76,7 @@ class GoTrueAuthRepository implements AuthRepository {
       unawaited(
         _store.setItem(key: sessionKey, value: jsonEncode(session.toJson())),
       );
-    } else if (state.event == AuthChangeEvent.signedOut) {
+    } else if (session == null && state.event == AuthChangeEvent.signedOut) {
       unawaited(_store.removeItem(key: sessionKey));
     }
     _setStatus(session);
@@ -177,15 +180,18 @@ class GoTrueAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {
-    try {
-      // Forgets the session locally first, then revokes it on the server.
-      await _client.signOut();
-    } on Exception {
-      // Offline: the refresh token expires on its own.
-    }
-    await _store.removeItem(key: sessionKey);
-    await _google.signOut();
-    _setStatus(null);
+    // Everything that must happen at once happens before the first await,
+    // so a sign-in started right afterwards can't be undone by a slow step
+    // (seen on a device: forgetting the Google account took 3 s).
+    final steps = [
+      _store.removeItem(key: sessionKey),
+      // Clears the session locally, then revokes it on the server. Offline,
+      // the old refresh token expires on its own.
+      _client.signOut().catchError((Object _) {}),
+      _google.signOut().catchError((Object _) {}),
+    ];
+    _setStatus(_client.currentSession);
+    await Future.wait(steps);
   }
 
   /// Stops listening; for tests and provider disposal.

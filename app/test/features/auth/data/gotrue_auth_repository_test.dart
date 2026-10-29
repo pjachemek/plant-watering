@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -57,11 +58,17 @@ class FakeGoogle implements GoogleIdTokenSource {
   );
   int signOuts = 0;
 
+  /// When set, forgetting the account waits for it, as Android's can.
+  Completer<void>? slowSignOut;
+
   @override
   Future<Result<GoogleIdToken, AuthFailure>> signIn() async => result;
 
   @override
-  Future<void> signOut() async => signOuts++;
+  Future<void> signOut() async {
+    signOuts++;
+    await slowSignOut?.future;
+  }
 }
 
 /// A fake Supabase Auth server: records requests, answers with [respond].
@@ -314,6 +321,33 @@ void main() {
 
       expect(await offline.accessToken(), isNotNull);
       expect(offline.status, const SignedIn(userId));
+    });
+
+    test('a sign-in right after signing out stays signed in', () async {
+      // Seen on a Pixel: Android took 3 s to forget the Google account, and
+      // the finishing sign-out undid the new sign-in.
+      server.respond = (request) async => request.url.path.endsWith('/logout')
+          ? http.Response('', 204)
+          : FakeServer.json(sessionJson());
+      store.values[GoTrueAuthRepository.sessionKey] = jsonEncode(sessionJson());
+      await repository.restore();
+      google.slowSignOut = Completer<void>();
+
+      final signingOut = repository.signOut();
+      expect(repository.status, const SignedOut());
+      await settle();
+
+      expect(
+        await repository.signInWithGoogle(),
+        isA<Success<void, AuthFailure>>(),
+      );
+      await settle();
+      google.slowSignOut!.complete();
+      await signingOut;
+      await settle();
+
+      expect(repository.status, const SignedIn(userId));
+      expect(store.values, contains(GoTrueAuthRepository.sessionKey));
     });
 
     test('signs out locally even when the server is unreachable', () async {
