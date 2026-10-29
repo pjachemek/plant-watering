@@ -154,6 +154,11 @@ class GoTrueAuthRepository implements AuthRepository {
     if (error.code == _emailAddressInvalid) {
       return AuthFailure.invalidEmail;
     }
+    // The project has this way of signing in turned off: retrying won't help.
+    if (error.code == ErrorCode.emailProviderDisabled.code ||
+        error.code == ErrorCode.providerDisabled.code) {
+      return AuthFailure.notConfigured;
+    }
     return fallback;
   }
 

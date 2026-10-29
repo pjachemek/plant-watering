@@ -236,6 +236,16 @@ void main() {
         const Failure<void, AuthFailure>(AuthFailure.invalidEmail),
       );
 
+      server.respond = (_) async => FakeServer.json({
+        'code': 422,
+        'error_code': 'email_provider_disabled',
+        'msg': 'Email logins are disabled',
+      }, 422);
+      expect(
+        await repository.sendEmailLink('ann@example.com'),
+        const Failure<void, AuthFailure>(AuthFailure.notConfigured),
+      );
+
       server.respond = (_) async => throw http.ClientException('offline');
       expect(
         await repository.sendEmailLink('ann@example.com'),
