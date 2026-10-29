@@ -12,6 +12,7 @@ import 'package:plantnfc/core/api/generated/plant_api_client.dart';
 import 'package:plantnfc/core/config/app_version.dart';
 import 'package:plantnfc/core/database/app_database.dart';
 import 'package:plantnfc/core/result/result.dart';
+import 'package:plantnfc/core/streams/switch_map.dart';
 import 'package:plantnfc/core/sync/sync_controller.dart';
 import 'package:plantnfc/features/household/domain/household.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -36,7 +37,9 @@ class ApiHouseholdRepository implements HouseholdRepository {
               ..orderBy([(h) => OrderingTerm(expression: h.createdAt)])
               ..limit(1))
             .watchSingleOrNull();
-    return household.asyncExpand((row) {
+    // switchMap, not asyncExpand: the members query never ends, and a
+    // change of household (leaving) must show at once.
+    return household.switchMap((row) {
       if (row == null) return Stream.value(null);
       return (_db.select(_db.members)
             ..where((m) => m.householdId.equals(row.id) & m.deletedAt.isNull())

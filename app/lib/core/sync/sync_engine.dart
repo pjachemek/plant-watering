@@ -57,10 +57,10 @@ class SyncEngine {
     }
     await _db.transaction(() async {
       final listed = {for (final h in households) h.id};
-      final local = await _db.select(_db.households).get();
-      for (final row in local.where((h) => !listed.contains(h.id))) {
-        // Left, or removed elsewhere: its data goes too.
-        await _db.removeHousehold(row.id);
+      // Left, or removed elsewhere: its data goes too, including rows whose
+      // household row is already gone (a change queued while leaving).
+      for (final id in await _db.localHouseholdIds()) {
+        if (!listed.contains(id)) await _db.removeHousehold(id);
       }
       for (final h in households) {
         await _db.into(_db.households).insertOnConflictUpdate(_household(h));

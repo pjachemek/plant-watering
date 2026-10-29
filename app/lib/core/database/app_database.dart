@@ -35,6 +35,21 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration =>
       MigrationStrategy(onCreate: (m) => m.createAll());
 
+  /// Every household id any local table refers to.
+  Future<Set<String>> localHouseholdIds() async {
+    final rows = await customSelect(
+      'SELECT id AS h FROM households '
+      'UNION SELECT household_id FROM members '
+      'UNION SELECT household_id FROM plants '
+      'UNION SELECT household_id FROM tags '
+      'UNION SELECT household_id FROM watering_events '
+      'UNION SELECT household_id FROM outbox '
+      'UNION SELECT household_id FROM sync_states',
+      readsFrom: allTables.toSet(),
+    ).get();
+    return {for (final row in rows) row.read<String>('h')};
+  }
+
   /// Removes one household and everything of it from this phone, its
   /// unsent changes included: after leaving, nothing of it can reach the
   /// server any more.

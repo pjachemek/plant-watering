@@ -137,6 +137,34 @@ void main() {
     expect(await repository.watchCurrent().first, isNull);
   });
 
+  test('leaving shows at once, while the members query is live', () async {
+    // Seen on a Pixel: the household stayed on screen after leaving.
+    await repository.create(name: 'Our home', displayName: 'Ann');
+    await db
+        .into(db.members)
+        .insert(
+          MembersCompanion.insert(
+            id: 'm1',
+            householdId: home,
+            userId: 'u1',
+            displayName: 'Ann',
+            joinedAt: DateTime.utc(2026, 10, 29),
+            updatedAt: DateTime.utc(2026, 10, 29),
+          ),
+        );
+    final seen = <HouseholdSummary?>[];
+    final sub = repository.watchCurrent().listen(seen.add);
+    addTearDown(sub.cancel);
+    await pumpEventQueue();
+    expect(seen.last?.name, 'Our home');
+
+    http.respond = (_) => (204, null);
+    await repository.leave(home, confirmDelete: true);
+    await pumpEventQueue();
+
+    expect(seen.last, isNull);
+  });
+
   test('the last member is asked to confirm, and nothing is removed', () async {
     await repository.create(name: 'Our home', displayName: 'Ann');
     http.respond = (_) =>

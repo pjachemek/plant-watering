@@ -217,6 +217,24 @@ void main() {
     expect(await a.plant(), isNull);
   });
 
+  test('a change queued for a household already left is dropped', () async {
+    // Seen on a Pixel: a plant added while leaving stayed queued forever.
+    await a.change(
+      const LocalChange(
+        householdId: 'gone',
+        entity: ChangeEntity.plant,
+        op: ChangeOp.upsert,
+        rowId: 'p-gone',
+        patch: {'nickname': 'Orphan', 'preset_id': 'monstera'},
+      ),
+    );
+
+    expect(await a.sync(), isNull);
+
+    expect(await a.outbox(), isEmpty);
+    expect(await a.plant('p-gone'), isNull);
+  });
+
   test('offline, everything stays queued and readable', () async {
     server.offline = true;
     await a.editPlant({'nickname': 'Monty', 'preset_id': 'monstera'});
