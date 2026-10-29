@@ -10,6 +10,8 @@ import 'package:plantnfc/features/auth/data/auth_providers.dart';
 import 'package:plantnfc/features/auth/domain/auth_repository.dart';
 import 'package:plantnfc/features/auth/domain/auth_status.dart';
 import 'package:plantnfc/features/auth/presentation/sign_in_screen.dart';
+import 'package:plantnfc/features/household/presentation/household_forms.dart';
+import 'package:plantnfc/features/household/presentation/household_screen.dart';
 import 'package:plantnfc/features/plants/presentation/plants_screen.dart';
 import 'package:plantnfc/features/scan/presentation/nfc_spike_screen.dart';
 import 'package:plantnfc/features/scan/presentation/tag_screen.dart';
@@ -30,6 +32,17 @@ abstract final class AppRoutes {
 
   /// Blocking update screen (FR-10).
   static const String updateRequired = '/update';
+
+  /// Household (FR-7).
+  static const String household = '/household';
+  static const String householdCreate = '/household/create';
+
+  /// `?code=` fills in the invite code.
+  static const String householdJoin = '/household/join';
+
+  /// Invite links (`https://plants.pampait.pl/i/{code}`, ADR-0018): the App
+  /// Link opens the join screen with the code filled in.
+  static const String invite = '/i/:code';
 
   /// Developer NFC test screen (M1). Registered in debug builds only.
   static const String nfcSpike = '/dev/nfc';
@@ -63,6 +76,24 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.updateRequired,
         builder: (context, state) => const UpdateRequiredScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.household,
+        builder: (context, state) => const HouseholdScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.householdCreate,
+        builder: (context, state) => const CreateHouseholdScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.householdJoin,
+        builder: (context, state) =>
+            JoinHouseholdScreen(code: state.uri.queryParameters['code']),
+      ),
+      GoRoute(
+        path: AppRoutes.invite,
+        builder: (context, state) =>
+            JoinHouseholdScreen(code: state.pathParameters['code']),
       ),
       GoRoute(
         path: AppRoutes.signIn,

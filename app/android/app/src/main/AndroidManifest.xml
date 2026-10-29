@@ -64,6 +64,17 @@
                     android:host="plants.pampait.pl"
                     android:pathPrefix="/p/"/>
             </intent-filter>
+            <!-- Household invite links (ADR-0018, ADR-0026): verified, so
+                 they open the join screen in this app. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="plants.pampait.pl"
+                    android:pathPrefix="/i/"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

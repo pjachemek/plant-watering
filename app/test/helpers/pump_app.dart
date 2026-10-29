@@ -11,8 +11,11 @@ import 'package:plantnfc/features/app_update/data/api_version_policy_source.dart
 import 'package:plantnfc/features/app_update/domain/version_policy.dart';
 import 'package:plantnfc/features/auth/data/auth_providers.dart';
 import 'package:plantnfc/features/auth/domain/auth_repository.dart';
+import 'package:plantnfc/features/household/data/api_household_repository.dart';
+import 'package:plantnfc/features/household/domain/household.dart';
 
 import 'fake_auth_repository.dart';
+import 'fake_household_repository.dart';
 import 'fake_version_policy_source.dart';
 
 /// The configuration widget tests run with: Google sign-in available.
@@ -41,6 +44,7 @@ const AppConfig testConfigWithoutGoogle = AppConfig(
 List<Override> testOverrides({
   AuthRepository? auth,
   VersionPolicySource? versionPolicy,
+  HouseholdRepository? households,
   AppConfig config = testConfig,
   List<Override> overrides = const [],
 }) => [
@@ -48,6 +52,9 @@ List<Override> testOverrides({
   appConfigProvider.overrideWithValue(config),
   versionPolicySourceProvider.overrideWithValue(
     versionPolicy ?? FakeVersionPolicySource(),
+  ),
+  householdRepositoryProvider.overrideWithValue(
+    households ?? FakeHouseholdRepository(),
   ),
   // Widget tests don't sync; the engine has its own tests.
   syncRunnerProvider.overrideWithValue((_) async => null),
@@ -67,6 +74,7 @@ Future<ProviderContainer> pumpApp(
   List<Override> overrides = const [],
   AuthRepository? auth,
   VersionPolicySource? versionPolicy,
+  HouseholdRepository? households,
   AppConfig config = testConfig,
 }) async {
   tester.platformDispatcher
@@ -82,6 +90,7 @@ Future<ProviderContainer> pumpApp(
     overrides: testOverrides(
       auth: auth,
       versionPolicy: versionPolicy,
+      households: households,
       config: config,
       overrides: overrides,
     ),

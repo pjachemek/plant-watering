@@ -188,4 +188,126 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dismissAction => 'Dismiss';
+
+  @override
+  String get householdSetupTitle => 'Set up your household';
+
+  @override
+  String get householdSetupBody =>
+      'Create a household for your plants, or join one with an invite code from someone in it.';
+
+  @override
+  String get householdCreateAction => 'Create a household';
+
+  @override
+  String get householdJoinAction => 'Join with a code';
+
+  @override
+  String get householdCreateTitle => 'Create a household';
+
+  @override
+  String get householdNameLabel => 'Household name';
+
+  @override
+  String get householdNameHint => 'For example, Our home';
+
+  @override
+  String get householdYourNameLabel => 'Your name';
+
+  @override
+  String get householdYourNameHelper => 'Shown to the people in your household';
+
+  @override
+  String get householdNameRequired => 'Enter a name (up to 80 characters)';
+
+  @override
+  String get householdYourNameRequired =>
+      'Enter your name (up to 60 characters)';
+
+  @override
+  String get householdCreateSubmit => 'Create';
+
+  @override
+  String get householdJoinTitle => 'Join a household';
+
+  @override
+  String get householdCodeLabel => 'Invite code';
+
+  @override
+  String get householdCodeHelper =>
+      '12 letters and numbers, or the whole invite link';
+
+  @override
+  String get householdCodeInvalidFormat =>
+      'Enter the 12-character code or the invite link';
+
+  @override
+  String get householdJoinSubmit => 'Join';
+
+  @override
+  String get householdTitle => 'Household';
+
+  @override
+  String get householdMembersHeading => 'Members';
+
+  @override
+  String get householdInviteAction => 'Invite someone';
+
+  @override
+  String get householdInviteTitle => 'Invite someone';
+
+  @override
+  String householdInviteBody(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat.yMMMd(localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'Share this code or link with someone in your home. It works once and expires on $dateString.';
+  }
+
+  @override
+  String householdInviteCodeLabel(String code) {
+    return 'Invite code $code';
+  }
+
+  @override
+  String get householdCopyLinkAction => 'Copy link';
+
+  @override
+  String get householdLinkCopied => 'Invite link copied';
+
+  @override
+  String get householdLeaveAction => 'Leave household';
+
+  @override
+  String householdLeaveTitle(String name) {
+    return 'Leave $name?';
+  }
+
+  @override
+  String get householdLeaveBody =>
+      'You will no longer see its plants on this phone. Someone in it can invite you again.';
+
+  @override
+  String get householdLeaveConfirm => 'Leave';
+
+  @override
+  String get householdLastMemberTitle => 'You are the last member';
+
+  @override
+  String get householdLastMemberBody =>
+      'Leaving deletes the household, with all its plants and waterings, for everyone. This can\'t be undone.';
+
+  @override
+  String get householdDeleteConfirm => 'Delete household';
+
+  @override
+  String get householdErrorNetwork =>
+      'Can\'t reach the server. Check your connection and try again.';
+
+  @override
+  String get householdErrorInvalidCode =>
+      'This invite code isn\'t valid. It may have expired or been used already. Ask for a new one.';
+
+  @override
+  String get householdErrorUnknown => 'Something went wrong. Try again.';
 }

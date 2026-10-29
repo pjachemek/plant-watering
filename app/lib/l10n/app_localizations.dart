@@ -417,6 +417,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dismiss'**
   String get dismissAction;
+
+  /// Heading on the home screen before the person has a household.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your household'**
+  String get householdSetupTitle;
+
+  /// Explanation before the person has a household.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a household for your plants, or join one with an invite code from someone in it.'**
+  String get householdSetupBody;
+
+  /// Button that opens the create-household form.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a household'**
+  String get householdCreateAction;
+
+  /// Button that opens the join-household form.
+  ///
+  /// In en, this message translates to:
+  /// **'Join with a code'**
+  String get householdJoinAction;
+
+  /// Title of the create-household screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a household'**
+  String get householdCreateTitle;
+
+  /// Label of the household name field.
+  ///
+  /// In en, this message translates to:
+  /// **'Household name'**
+  String get householdNameLabel;
+
+  /// Hint in the household name field.
+  ///
+  /// In en, this message translates to:
+  /// **'For example, Our home'**
+  String get householdNameHint;
+
+  /// Label of the field for the person's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get householdYourNameLabel;
+
+  /// Helper text under the display name field.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown to the people in your household'**
+  String get householdYourNameHelper;
+
+  /// Validation message for the household name.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name (up to 80 characters)'**
+  String get householdNameRequired;
+
+  /// Validation message for the display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name (up to 60 characters)'**
+  String get householdYourNameRequired;
+
+  /// Button that creates the household.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get householdCreateSubmit;
+
+  /// Title of the join-household screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a household'**
+  String get householdJoinTitle;
+
+  /// Label of the invite code field.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code'**
+  String get householdCodeLabel;
+
+  /// Helper text under the invite code field.
+  ///
+  /// In en, this message translates to:
+  /// **'12 letters and numbers, or the whole invite link'**
+  String get householdCodeHelper;
+
+  /// Validation message for a malformed invite code.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 12-character code or the invite link'**
+  String get householdCodeInvalidFormat;
+
+  /// Button that joins the household.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get householdJoinSubmit;
+
+  /// Title of the household screen and tooltip of the button that opens it.
+  ///
+  /// In en, this message translates to:
+  /// **'Household'**
+  String get householdTitle;
+
+  /// Heading of the member list.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get householdMembersHeading;
+
+  /// Button that creates an invite code.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite someone'**
+  String get householdInviteAction;
+
+  /// Heading of the invite sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite someone'**
+  String get householdInviteTitle;
+
+  /// Explanation on the invite sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this code or link with someone in your home. It works once and expires on {date}.'**
+  String householdInviteBody(DateTime date);
+
+  /// Screen reader label for the invite code, read character by character by the screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code {code}'**
+  String householdInviteCodeLabel(String code);
+
+  /// Button that copies the invite link.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get householdCopyLinkAction;
+
+  /// Shown after the invite link was copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite link copied'**
+  String get householdLinkCopied;
+
+  /// Button that starts leaving the household.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave household'**
+  String get householdLeaveAction;
+
+  /// Title of the leave confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave {name}?'**
+  String householdLeaveTitle(String name);
+
+  /// Body of the leave confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'You will no longer see its plants on this phone. Someone in it can invite you again.'**
+  String get householdLeaveBody;
+
+  /// Button that confirms leaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get householdLeaveConfirm;
+
+  /// Title shown when the last member leaves.
+  ///
+  /// In en, this message translates to:
+  /// **'You are the last member'**
+  String get householdLastMemberTitle;
+
+  /// Body of the last-member confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaving deletes the household, with all its plants and waterings, for everyone. This can\'t be undone.'**
+  String get householdLastMemberBody;
+
+  /// Button that confirms deleting the household.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete household'**
+  String get householdDeleteConfirm;
+
+  /// Household error: no connection.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the server. Check your connection and try again.'**
+  String get householdErrorNetwork;
+
+  /// Household error: the invite code can't be used.
+  ///
+  /// In en, this message translates to:
+  /// **'This invite code isn\'t valid. It may have expired or been used already. Ask for a new one.'**
+  String get householdErrorInvalidCode;
+
+  /// Generic household error.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again.'**
+  String get householdErrorUnknown;
 }
 
 class _AppLocalizationsDelegate

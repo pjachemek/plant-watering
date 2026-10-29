@@ -215,5 +215,163 @@
   "dismissAction": "Dismiss",
   "@dismissAction": {
     "description": "Button that closes a prompt."
+  },
+  "householdSetupTitle": "Set up your household",
+  "@householdSetupTitle": {
+    "description": "Heading on the home screen before the person has a household."
+  },
+  "householdSetupBody": "Create a household for your plants, or join one with an invite code from someone in it.",
+  "@householdSetupBody": {
+    "description": "Explanation before the person has a household."
+  },
+  "householdCreateAction": "Create a household",
+  "@householdCreateAction": {
+    "description": "Button that opens the create-household form."
+  },
+  "householdJoinAction": "Join with a code",
+  "@householdJoinAction": {
+    "description": "Button that opens the join-household form."
+  },
+  "householdCreateTitle": "Create a household",
+  "@householdCreateTitle": {
+    "description": "Title of the create-household screen."
+  },
+  "householdNameLabel": "Household name",
+  "@householdNameLabel": {
+    "description": "Label of the household name field."
+  },
+  "householdNameHint": "For example, Our home",
+  "@householdNameHint": {
+    "description": "Hint in the household name field."
+  },
+  "householdYourNameLabel": "Your name",
+  "@householdYourNameLabel": {
+    "description": "Label of the field for the person's display name."
+  },
+  "householdYourNameHelper": "Shown to the people in your household",
+  "@householdYourNameHelper": {
+    "description": "Helper text under the display name field."
+  },
+  "householdNameRequired": "Enter a name (up to 80 characters)",
+  "@householdNameRequired": {
+    "description": "Validation message for the household name."
+  },
+  "householdYourNameRequired": "Enter your name (up to 60 characters)",
+  "@householdYourNameRequired": {
+    "description": "Validation message for the display name."
+  },
+  "householdCreateSubmit": "Create",
+  "@householdCreateSubmit": {
+    "description": "Button that creates the household."
+  },
+  "householdJoinTitle": "Join a household",
+  "@householdJoinTitle": {
+    "description": "Title of the join-household screen."
+  },
+  "householdCodeLabel": "Invite code",
+  "@householdCodeLabel": {
+    "description": "Label of the invite code field."
+  },
+  "householdCodeHelper": "12 letters and numbers, or the whole invite link",
+  "@householdCodeHelper": {
+    "description": "Helper text under the invite code field."
+  },
+  "householdCodeInvalidFormat": "Enter the 12-character code or the invite link",
+  "@householdCodeInvalidFormat": {
+    "description": "Validation message for a malformed invite code."
+  },
+  "householdJoinSubmit": "Join",
+  "@householdJoinSubmit": {
+    "description": "Button that joins the household."
+  },
+  "householdTitle": "Household",
+  "@householdTitle": {
+    "description": "Title of the household screen and tooltip of the button that opens it."
+  },
+  "householdMembersHeading": "Members",
+  "@householdMembersHeading": {
+    "description": "Heading of the member list."
+  },
+  "householdInviteAction": "Invite someone",
+  "@householdInviteAction": {
+    "description": "Button that creates an invite code."
+  },
+  "householdInviteTitle": "Invite someone",
+  "@householdInviteTitle": {
+    "description": "Heading of the invite sheet."
+  },
+  "householdInviteBody": "Share this code or link with someone in your home. It works once and expires on {date}.",
+  "@householdInviteBody": {
+    "description": "Explanation on the invite sheet.",
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMMMd"
+      }
+    }
+  },
+  "householdInviteCodeLabel": "Invite code {code}",
+  "@householdInviteCodeLabel": {
+    "description": "Screen reader label for the invite code, read character by character by the screen reader.",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "Ab3dEf6hIj9k"
+      }
+    }
+  },
+  "householdCopyLinkAction": "Copy link",
+  "@householdCopyLinkAction": {
+    "description": "Button that copies the invite link."
+  },
+  "householdLinkCopied": "Invite link copied",
+  "@householdLinkCopied": {
+    "description": "Shown after the invite link was copied."
+  },
+  "householdLeaveAction": "Leave household",
+  "@householdLeaveAction": {
+    "description": "Button that starts leaving the household."
+  },
+  "householdLeaveTitle": "Leave {name}?",
+  "@householdLeaveTitle": {
+    "description": "Title of the leave confirmation.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Our home"
+      }
+    }
+  },
+  "householdLeaveBody": "You will no longer see its plants on this phone. Someone in it can invite you again.",
+  "@householdLeaveBody": {
+    "description": "Body of the leave confirmation."
+  },
+  "householdLeaveConfirm": "Leave",
+  "@householdLeaveConfirm": {
+    "description": "Button that confirms leaving."
+  },
+  "householdLastMemberTitle": "You are the last member",
+  "@householdLastMemberTitle": {
+    "description": "Title shown when the last member leaves."
+  },
+  "householdLastMemberBody": "Leaving deletes the household, with all its plants and waterings, for everyone. This can't be undone.",
+  "@householdLastMemberBody": {
+    "description": "Body of the last-member confirmation."
+  },
+  "householdDeleteConfirm": "Delete household",
+  "@householdDeleteConfirm": {
+    "description": "Button that confirms deleting the household."
+  },
+  "householdErrorNetwork": "Can't reach the server. Check your connection and try again.",
+  "@householdErrorNetwork": {
+    "description": "Household error: no connection."
+  },
+  "householdErrorInvalidCode": "This invite code isn't valid. It may have expired or been used already. Ask for a new one.",
+  "@householdErrorInvalidCode": {
+    "description": "Household error: the invite code can't be used."
+  },
+  "householdErrorUnknown": "Something went wrong. Try again.",
+  "@householdErrorUnknown": {
+    "description": "Generic household error."
   }
 }
