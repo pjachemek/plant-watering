@@ -385,6 +385,7 @@ Work strictly in this order; each milestone ends with a demo on real devices and
 - [x] Architecture: the app talks only to the versioned API on Cloudflare Workers, never to Supabase tables (confirmed 2026-10-26, ADR-0012).
 - [x] Live updates and reminders: foreground WebSocket through a Durable Object per household; server-sent visible digest, replaced in place; silent push never relied on (confirmed 2026-10-27, ADR-0013).
 - [x] Sign-in: external identity providers only (Google; Apple with iOS); no email magic links or passwords (confirmed 2026-10-29, ADR-0022).
-- [ ] App languages for v1 and the default hemisphere for seasons.
+- [x] Preset names: English with Polish aliases, both searchable; the app interface stays English for now (strings in ARB files). Default hemisphere: north (confirmed 2026-10-29).
+- [ ] App interface languages for v1 (English now; Polish later?).
 - [ ] Push provider: FCM for both platforms (default) or direct APNs for iOS.
 - [ ] Should the web fallback card be on or off by default for new households?
