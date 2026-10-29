@@ -86,11 +86,16 @@ String? authRedirect({required bool signedIn, required Uri location}) {
   final onSignIn = path == AppRoutes.signIn || path == AppRoutes.authCallback;
   if (!signedIn) {
     if (onSignIn) return null;
+    // Path and query only: an app link arrives as the full URL
+    // (https://plants.pampait.pl/p/...), which must not count as leaving the
+    // app when it's followed after sign-in.
+    final from = Uri(
+      path: path,
+      query: location.hasQuery ? location.query : null,
+    ).toString();
     return Uri(
       path: AppRoutes.signIn,
-      queryParameters: path == AppRoutes.plants
-          ? null
-          : {'from': location.toString()},
+      queryParameters: path == AppRoutes.plants ? null : {'from': from},
     ).toString();
   }
   if (!onSignIn) return null;

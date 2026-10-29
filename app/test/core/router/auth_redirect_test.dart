@@ -17,6 +17,16 @@ void main() {
       );
     });
 
+    test('remembers an app link that arrives as a full URL by its path', () {
+      expect(
+        redirect(
+          'https://plants.pampait.pl/p/AbCdEfGhIjKlMnOpQrStUv',
+          signedIn: false,
+        ),
+        '/sign-in?from=%2Fp%2FAbCdEfGhIjKlMnOpQrStUv',
+      );
+    });
+
     test('leaves the sign-in screens alone', () {
       expect(redirect('/sign-in', signedIn: false), isNull);
       expect(redirect('/auth/callback?code=x', signedIn: false), isNull);

@@ -1,9 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:plantnfc/app.dart';
+import 'package:plantnfc/core/config/config_provider.dart';
 import 'package:plantnfc/core/result/result.dart';
 import 'package:plantnfc/core/router/app_router.dart';
+import 'package:plantnfc/features/auth/data/auth_providers.dart';
 import 'package:plantnfc/features/auth/domain/auth_status.dart';
 
 import '../../../helpers/fake_auth_repository.dart';
@@ -53,6 +57,42 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets(
+      'a tag that cold-starts the app signed out opens after sign-in',
+      (tester) async {
+        // Android hands an app link to Flutter as the full URL (seen on a
+        // Pixel: after sign-in the plant list opened instead of the tag).
+        tester.binding.platformDispatcher.defaultRouteNameTestValue =
+            'https://plants.pampait.pl/p/AbCdEfGhIjKlMnOpQrStUv';
+        addTearDown(
+          tester.binding.platformDispatcher.clearDefaultRouteNameTestValue,
+        );
+        final container = ProviderContainer(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(auth),
+            appConfigProvider.overrideWithValue(testConfig),
+          ],
+        );
+        addTearDown(container.dispose);
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const PlantApp(),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Sign in to Plant NFC'), findsOneWidget);
+
+        await tester.tap(find.text('Continue with Google'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.textContaining('This tag link opened the app'),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets('shows progress and disables both ways while signing in', (
       tester,
