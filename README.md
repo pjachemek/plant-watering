@@ -71,6 +71,8 @@ npm run db:start && npm run db:test && npm run db:lint
 
 Golden images are generated on Linux. Regenerate them with `flutter test --update-goldens --tags golden`, on Linux or in Docker.
 
+The database tests load SQLite through `sqlite3`'s native library. On Windows with Smart App Control (Application Control) turned on, Windows blocks that unsigned DLL, and those tests fail with "An Application Control policy has blocked this file". Run them in Docker instead (below); CI runs them on Linux. After running Flutter in Docker, run `flutter pub get` on Windows again, because the container rewrites `.dart_tool/package_config.json` with Linux paths.
+
 ## Flutter in Docker
 
 For machines without the Flutter SDK, for example to run checks or regenerate goldens:
