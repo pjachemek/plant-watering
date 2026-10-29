@@ -52,6 +52,16 @@ class FakeAuthRepository implements AuthRepository {
   Future<String?> accessToken() async =>
       _status is SignedIn ? 'test-access-token' : null;
 
+  /// Each refresh hands out a new token while signed in.
+  int refreshes = 0;
+
+  @override
+  Future<String?> refreshAccessToken() async {
+    if (_status is! SignedIn) return null;
+    refreshes++;
+    return 'test-access-token-$refreshes';
+  }
+
   @override
   Future<void> signOut() async {
     signOuts++;

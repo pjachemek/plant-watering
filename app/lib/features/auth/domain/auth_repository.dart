@@ -22,6 +22,10 @@ abstract interface class AuthRepository {
   /// A valid access token, refreshed when needed, or `null` when signed out.
   Future<String?> accessToken();
 
+  /// A new access token even if the current one looks valid, after the API
+  /// refused it (401). `null` when it can't be refreshed now.
+  Future<String?> refreshAccessToken();
+
   /// Signs out on this device and forgets the saved session.
   Future<void> signOut();
 }

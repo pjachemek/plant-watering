@@ -194,6 +194,25 @@ void main() {
   });
 
   group('session', () {
+    test('refreshes the token on request, or answers null offline', () async {
+      store.values[GoTrueAuthRepository.sessionKey] = jsonEncode(sessionJson());
+      await repository.restore();
+      server.respond = (_) async => FakeServer.json(sessionJson());
+
+      expect(await repository.refreshAccessToken(), isNotNull);
+      expect(
+        server.requests.single.url.queryParameters['grant_type'],
+        'refresh_token',
+      );
+
+      server.respond = (_) async => FakeServer.json({
+        'code': 400,
+        'error_code': 'refresh_token_not_found',
+        'msg': 'Invalid Refresh Token',
+      }, 400);
+      expect(await repository.refreshAccessToken(), isNull);
+    });
+
     test('has no access token when signed out', () async {
       await repository.restore();
 

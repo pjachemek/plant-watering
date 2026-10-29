@@ -143,6 +143,16 @@ class GoTrueAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<String?> refreshAccessToken() async {
+    try {
+      return (await _client.refreshSession()).session?.accessToken;
+    } on AuthException {
+      // Offline, or the refresh token was revoked (which signs out).
+      return null;
+    }
+  }
+
+  @override
   Future<void> signOut() async {
     // Everything that must happen at once happens before the first await,
     // so a sign-in started right afterwards can't be undone by a slow step
