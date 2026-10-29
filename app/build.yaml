@@ -6,3 +6,13 @@ targets:
           # Absent optional values are omitted, never sent as null: the API
           # contract treats null and absent differently (ADR-0015).
           include_if_null: false
+      drift_dev:
+        options:
+          # ISO 8601 text in UTC: exact to the microsecond and sortable.
+          store_date_time_values_as_text: true
+          # The schema of every released version is exported to drift_schemas/,
+          # so migrations are tested against the real old schemas.
+          databases:
+            app_database: lib/core/database/app_database.dart
+          schema_dir: drift_schemas/
+          test_dir: test/core/database/migrations/
