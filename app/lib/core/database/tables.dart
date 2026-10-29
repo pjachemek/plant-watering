@@ -57,7 +57,12 @@ class Plants extends Table {
 }
 
 @DataClassName('TagRow')
-@TableIndex(name: 'tags_token', columns: {#token}, unique: true)
+// A token is unique among active tags only: deleting a tag frees its
+// sticker at once, as on the server (ADR-0027).
+@TableIndex.sql(
+  'CREATE UNIQUE INDEX tags_active_token ON tags (token) '
+  'WHERE deleted_at IS NULL',
+)
 @TableIndex(name: 'tags_plant', columns: {#plantId})
 class Tags extends Table {
   TextColumn get id => text()();

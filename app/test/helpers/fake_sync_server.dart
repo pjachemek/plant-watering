@@ -7,9 +7,9 @@ import 'fake_http_adapter.dart';
 
 /// A small in-memory stand-in for the sync API (ADR-0019), enough to test
 /// the app's engine against the same rules: a change ledger keyed by change
-/// id, per-field last write wins, append-only waterings, soft deletes,
-/// unique tag tokens, and an integer cursor. The real rules are tested in
-/// functions/test/sync.test.ts.
+/// id, per-field last write wins, append-only waterings, soft deletes, tag
+/// tokens unique among active tags, and an integer cursor. The real rules
+/// are tested in functions/test/sync.test.ts.
 class FakeSyncServer {
   new({required this.householdId});
 
@@ -196,8 +196,20 @@ class FakeSyncServer {
         );
         return null;
       case 'tag':
-        final token = patch['token'];
-        if (tags.values.any((t) => t['token'] == token && t['id'] != id)) {
+        if (op == 'delete') {
+          final row = tags[id];
+          if (row == null) return 'not_found';
+          row
+            ..['deleted_at'] ??= _time
+            ..['_xid'] = xid;
+          return null;
+        }
+        // Unique among active tags only (ADR-0027).
+        final token = patch['token'] ?? tags[id]?['token'];
+        if (tags.values.any(
+          (t) =>
+              t['token'] == token && t['id'] != id && t['deleted_at'] == null,
+        )) {
           return 'conflict';
         }
         tags[id] = {

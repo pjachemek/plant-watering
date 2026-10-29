@@ -3863,9 +3863,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'plants_household',
     'CREATE INDEX plants_household ON plants (household_id)',
   );
-  late final Index tagsToken = Index(
-    'tags_token',
-    'CREATE UNIQUE INDEX tags_token ON tags (token)',
+  late final Index tagsActiveToken = Index(
+    'tags_active_token',
+    'CREATE UNIQUE INDEX tags_active_token ON tags (token) WHERE deleted_at IS NULL',
   );
   late final Index tagsPlant = Index(
     'tags_plant',
@@ -3892,7 +3892,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     outbox,
     syncStates,
     plantsHousehold,
-    tagsToken,
+    tagsActiveToken,
     tagsPlant,
     wateringPlantTime,
     outboxHousehold,

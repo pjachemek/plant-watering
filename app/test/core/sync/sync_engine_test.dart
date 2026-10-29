@@ -206,6 +206,35 @@ void main() {
     expect(state.fullPullNeeded, isFalse);
   });
 
+  test(
+    'a sticker linked again after deleting its tag syncs on both phones',
+    () async {
+      final token = 'R' * 22;
+      LocalChange tag(String id, ChangeOp op) => LocalChange(
+        householdId: home,
+        entity: ChangeEntity.tag,
+        op: op,
+        rowId: id,
+        patch: op == ChangeOp.upsert ? {'token': token} : const {},
+      );
+      await a.change(tag('t1', ChangeOp.upsert));
+      await a.change(tag('t1', ChangeOp.delete));
+      await a.change(tag('t2', ChangeOp.upsert)); // same sticker, new tag
+
+      expect(await a.sync(), isNull);
+      expect(await b.sync(), isNull);
+
+      for (final device in [a, b]) {
+        final tags = {
+          for (final t in await device.db.select(device.db.tags).get()) t.id: t,
+        };
+        expect(tags['t1']?.deletedAt, isNotNull);
+        expect(tags['t2']?.deletedAt, isNull);
+        expect(tags['t2']?.token, token);
+      }
+    },
+  );
+
   test('leaving the household removes its data from the phone', () async {
     await a.editPlant({'nickname': 'Monty', 'preset_id': 'monstera'});
     await a.sync();

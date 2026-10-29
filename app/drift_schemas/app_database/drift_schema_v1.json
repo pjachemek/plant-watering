@@ -770,15 +770,10 @@
       "type": "index",
       "data": {
         "on": 3,
-        "name": "tags_token",
-        "sql": null,
+        "name": "tags_active_token",
+        "sql": "CREATE UNIQUE INDEX tags_active_token ON tags (token) WHERE deleted_at IS NULL",
         "unique": true,
-        "columns": [
-          {
-            "column": "token",
-            "order_by": null
-          }
-        ]
+        "columns": []
       }
     },
     {
@@ -921,11 +916,11 @@
       ]
     },
     {
-      "name": "tags_token",
+      "name": "tags_active_token",
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE UNIQUE INDEX tags_token ON tags (token)"
+          "sql": "CREATE UNIQUE INDEX tags_active_token ON tags (token) WHERE deleted_at IS NULL"
         }
       ]
     },

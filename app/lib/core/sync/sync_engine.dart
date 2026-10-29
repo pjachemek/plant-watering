@@ -248,11 +248,18 @@ class SyncEngine {
     for (final t in pull.tags) {
       final token = t.token;
       if (token == null) continue;
-      // A token is unique: a local tag holding it under another id was
-      // refused by the server, so the server's wins.
-      await (_db.delete(
-        _db.tags,
-      )..where((x) => x.token.equals(token) & x.id.equals(t.id).not())).go();
+      // A token is unique among active tags (ADR-0027): a local active tag
+      // holding it under another id was refused by the server, so the
+      // server's wins.
+      if (t.deletedAt == null) {
+        await (_db.delete(_db.tags)..where(
+              (x) =>
+                  x.token.equals(token) &
+                  x.id.equals(t.id).not() &
+                  x.deletedAt.isNull(),
+            ))
+            .go();
+      }
       await _db
           .into(_db.tags)
           .insertOnConflictUpdate(
