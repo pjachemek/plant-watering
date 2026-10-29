@@ -1,6 +1,6 @@
 # ADR-0021: App sign-in with Google and email links
 
-- Status: Accepted
+- Status: Accepted; email links superseded by ADR-0022
 - Date: 2026-10-29
 - Related: M2 increment 2.8; AGENTS.md sections 4–6, 9; ADR-0012, ADR-0016; FR-7; NFR Security (credentials), Privacy, Offline, Accessibility
 

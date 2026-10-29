@@ -21,16 +21,14 @@ The web host (`plants.pampait.pl`: app-link files, tag pages) is served by produ
 
 ## Sign-in setup (product owner, once per project)
 
-App sign-in uses Google and email links (ADR-0021). Client ids are public; client secrets stay in the Supabase dashboard.
+App sign-in uses external providers only: Google now, Apple with iOS (ADR-0021, ADR-0022). Client ids are public; client secrets stay in the Supabase dashboard.
 
 1. **Google Cloud** (one project, e.g. "Plant NFC"):
    - **Google Auth Platform:** External audience, publishing status **Testing**, the household's Google accounts as test users. No extra scopes.
    - **Web client:** redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`.
    - **Android client** for each signing key: package `pl.pampait.plantnfc` and the key's SHA-1. That means the debug key now, then the upload and Play app signing keys.
 2. **Supabase → Authentication → Sign In / Providers → Google:** enable; set Client IDs to the Web client id and the Client Secret; leave nonce checks on.
-3. **Supabase → Authentication → URL Configuration:**
-   - Site URL `https://plants.pampait.pl`.
-   - Redirect URLs must include `https://plants.pampait.pl/auth/callback`.
+3. **Supabase → Authentication → Sign In / Providers → Email:** turned **off**. Without it nobody can sign up with an email and password through the public Auth API either.
 4. **App build:** `GOOGLE_WEB_CLIENT_ID=<web client id>` in `.env` (see `.env.example`).
 
 Dev project values:

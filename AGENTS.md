@@ -81,7 +81,7 @@ Each story lists its acceptance criteria. IDs (FR-x) are referenced in commits, 
 
 **FR-7 Household.**
 
-- Sign up with Sign in with Apple, Google, or email magic link.
+- Sign up with external identity providers only: Sign in with Apple (iOS) and Google. No email or password sign-in (ADR-0022).
 - First user creates a household; others join via an invite link or code that expires in 7 days.
 - All members have equal rights in MVP. A member can leave; the last member leaving deletes the household after confirmation.
 
@@ -384,6 +384,7 @@ Work strictly in this order; each milestone ends with a demo on real devices and
 - [x] Domain `plants.pampait.pl` (API at `api.plants.pampait.pl`); bundle ID and application ID `pl.pampait.plantnfc` (confirmed 2026-10-23, ADR-0008). App name still provisional ("Plant NFC").
 - [x] Architecture: the app talks only to the versioned API on Cloudflare Workers, never to Supabase tables (confirmed 2026-10-26, ADR-0012).
 - [x] Live updates and reminders: foreground WebSocket through a Durable Object per household; server-sent visible digest, replaced in place; silent push never relied on (confirmed 2026-10-27, ADR-0013).
+- [x] Sign-in: external identity providers only (Google; Apple with iOS); no email magic links or passwords (confirmed 2026-10-29, ADR-0022).
 - [ ] App languages for v1 and the default hemisphere for seasons.
 - [ ] Push provider: FCM for both platforms (default) or direct APNs for iOS.
 - [ ] Should the web fallback card be on or off by default for new households?
