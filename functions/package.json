@@ -23,7 +23,7 @@
     "deploy:development": "wrangler deploy --env development"
   },
   "dependencies": {
-    "@sentry/cloudflare": "11.8.0",
+    "@sentry/cloudflare": "11.9.0",
     "hono": "4.13.13",
     "jose": "6.2.13",
     "pg": "8.23.1",
