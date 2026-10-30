@@ -81,4 +81,58 @@ void main() {
       }
     }
   });
+
+  group('searching the bundled presets', () {
+    late PresetSearch search;
+
+    setUpAll(() async {
+      final catalog = parsePresetCatalog(
+        await rootBundle.loadString(presetAsset),
+      );
+      search = PresetSearch(catalog.presets);
+    });
+
+    String? first(String query) => search.search(query).firstOrNull?.preset.id;
+
+    test('finds what people type, in English, Polish and Latin', () {
+      final expected = {
+        'monstera': 'monstera',
+        'swiss cheese vine': 'monstera-adansonii',
+        'skrzydlokwiat': 'peace-lily',
+        'zamiokulkas': 'zz-plant',
+        'sansevieria': 'snake-plant',
+        'grudnik': 'christmas-cactus',
+        'fiolek afrykanski': 'african-violet',
+        'phalaenopsis': 'moth-orchid',
+        'strelitzia nicolai': 'strelitzia-nicolai',
+        'bird of paradise': 'bird-of-paradise',
+        'ficus lyrata': 'fiddle-leaf-fig',
+      };
+      for (final MapEntry(key: query, value: id) in expected.entries) {
+        expect(first(query), id, reason: query);
+      }
+    });
+
+    test('forgives typos', () {
+      expect(first('diffenbachia'), 'dieffenbachia');
+      expect(first('zamioculcus'), 'zz-plant');
+      expect(first('calatea'), 'calathea');
+      expect(first('strelicja krolewska'), 'bird-of-paradise');
+    });
+
+    test('lists every match for a shared word', () {
+      final figs = search.search('figowiec').map((m) => m.preset.id);
+      expect(
+        figs,
+        containsAll(['fiddle-leaf-fig', 'rubber-plant', 'weeping-fig']),
+      );
+    });
+
+    test('answers within 100 ms (NFR Performance)', () {
+      final watch = Stopwatch()..start();
+      ['m', 'skrzyd', 'diffenbachia', 'palm', 'xyzzy'].forEach(search.search);
+      watch.stop();
+      expect(watch.elapsedMilliseconds, lessThan(100));
+    });
+  });
 }
