@@ -365,4 +365,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncTestSomeone => 'someone';
+
+  @override
+  String get presetSearchTitle => 'Preset search';
+
+  @override
+  String get presetSearchOpenAction => 'Preset search';
+
+  @override
+  String get presetSearchLabel => 'Search plants';
+
+  @override
+  String get presetSearchHint => 'Name, Latin name or Polish name';
+
+  @override
+  String presetSearchTiming(int count, String ms) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count results',
+      one: '1 result',
+    );
+    return '$_temp0 in $ms ms';
+  }
+
+  @override
+  String get presetSearchNoResults => 'No presets match';
+
+  @override
+  String presetSearchMatched(String name) {
+    return 'Matched: $name';
+  }
+
+  @override
+  String presetSearchCare(int summer, int winter, String method) {
+    return 'Every $summer days in summer, $winter in winter · $method';
+  }
 }

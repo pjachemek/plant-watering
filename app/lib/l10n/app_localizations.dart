@@ -705,6 +705,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'someone'**
   String get syncTestSomeone;
+
+  /// Title of the developer screen for testing preset search. Debug builds only.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset search'**
+  String get presetSearchTitle;
+
+  /// Button on the sync test screen that opens the preset search test. Debug builds only.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset search'**
+  String get presetSearchOpenAction;
+
+  /// Label of the preset search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search plants'**
+  String get presetSearchLabel;
+
+  /// Hint in the preset search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, Latin name or Polish name'**
+  String get presetSearchHint;
+
+  /// How many presets matched and how long the search took.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 result} other{{count} results}} in {ms} ms'**
+  String presetSearchTiming(int count, String ms);
+
+  /// Shown when a search finds nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No presets match'**
+  String get presetSearchNoResults;
+
+  /// Which name of the preset matched the search.
+  ///
+  /// In en, this message translates to:
+  /// **'Matched: {name}'**
+  String presetSearchMatched(String name);
+
+  /// Watering summary of a preset.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {summer} days in summer, {winter} in winter · {method}'**
+  String presetSearchCare(int summer, int winter, String method);
 }
 
 class _AppLocalizationsDelegate

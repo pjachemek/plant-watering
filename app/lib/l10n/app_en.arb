@@ -450,5 +450,61 @@
   "syncTestSomeone": "someone",
   "@syncTestSomeone": {
     "description": "Name used when the person who watered isn't known on this phone."
+  },
+  "presetSearchTitle": "Preset search",
+  "@presetSearchTitle": {
+    "description": "Title of the developer screen for testing preset search. Debug builds only."
+  },
+  "presetSearchOpenAction": "Preset search",
+  "@presetSearchOpenAction": {
+    "description": "Button on the sync test screen that opens the preset search test. Debug builds only."
+  },
+  "presetSearchLabel": "Search plants",
+  "@presetSearchLabel": {
+    "description": "Label of the preset search field."
+  },
+  "presetSearchHint": "Name, Latin name or Polish name",
+  "@presetSearchHint": {
+    "description": "Hint in the preset search field."
+  },
+  "presetSearchTiming": "{count, plural, =1{1 result} other{{count} results}} in {ms} ms",
+  "@presetSearchTiming": {
+    "description": "How many presets matched and how long the search took.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "ms": {
+        "type": "String"
+      }
+    }
+  },
+  "presetSearchNoResults": "No presets match",
+  "@presetSearchNoResults": {
+    "description": "Shown when a search finds nothing."
+  },
+  "presetSearchMatched": "Matched: {name}",
+  "@presetSearchMatched": {
+    "description": "Which name of the preset matched the search.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetSearchCare": "Every {summer} days in summer, {winter} in winter · {method}",
+  "@presetSearchCare": {
+    "description": "Watering summary of a preset.",
+    "placeholders": {
+      "summer": {
+        "type": "int"
+      },
+      "winter": {
+        "type": "int"
+      },
+      "method": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:plantnfc/core/database/app_database.dart';
 import 'package:plantnfc/core/database/local_changes.dart';
 import 'package:plantnfc/core/design/tokens.dart';
 import 'package:plantnfc/core/ids/uuid_v7.dart';
+import 'package:plantnfc/core/router/app_router.dart';
 import 'package:plantnfc/core/sync/live_updates.dart';
 import 'package:plantnfc/core/sync/sync_controller.dart';
 import 'package:plantnfc/features/auth/data/auth_providers.dart';
@@ -36,6 +38,11 @@ class SyncTestScreen extends ConsumerWidget {
                 ref.watch(liveUpdatesProvider).name,
                 ref.watch(outboxSizeProvider).value ?? 0,
               ),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => context.push(AppRoutes.presetSearch),
+              icon: const Icon(Icons.search),
+              label: Text(l10n.presetSearchOpenAction),
             ),
             const SizedBox(height: AppSpacing.lg),
             if (household == null)

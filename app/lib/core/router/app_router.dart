@@ -14,6 +14,7 @@ import 'package:plantnfc/features/household/presentation/household_forms.dart';
 import 'package:plantnfc/features/household/presentation/household_screen.dart';
 import 'package:plantnfc/features/plants/presentation/plants_screen.dart';
 import 'package:plantnfc/features/plants/presentation/sync_test_screen.dart';
+import 'package:plantnfc/features/presets/presentation/preset_search_screen.dart';
 import 'package:plantnfc/features/scan/presentation/nfc_spike_screen.dart';
 import 'package:plantnfc/features/scan/presentation/tag_screen.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -50,6 +51,9 @@ abstract final class AppRoutes {
 
   /// Developer sync test screen (M2 exit test). Debug builds only.
   static const String syncTest = '/dev/sync';
+
+  /// Developer preset search screen (M3 demo). Debug builds only.
+  static const String presetSearch = '/dev/presets';
 }
 
 @Riverpod(keepAlive: true)
@@ -111,6 +115,10 @@ GoRouter appRouter(Ref ref) {
         GoRoute(
           path: AppRoutes.syncTest,
           builder: (context, state) => const SyncTestScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.presetSearch,
+          builder: (context, state) => const PresetSearchScreen(),
         ),
       ],
     ],
